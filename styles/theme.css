@@ -1,0 +1,1082 @@
+/* #region 1. VARIÁVEIS E CONFIGURAÇÕES GLOBAIS */
+@import url("https://use.typekit.net/gzk2ykc.css");
+
+:root {
+  --laranja: #F15921;
+  --marrom: #571A1A;
+  --amarelo: #FEC751;
+  --branco: #FFFFFF;
+  --bg-mesa: #FAFAFA;
+  /* Fundo da área de trabalho */
+  --bg-sidebar: #F2F2F2;
+  /* Sidebar levemente cinza */
+  --borda-suave: #EAEAEA;
+
+  /* Fontes Adobe */
+  --bold: 'gopher', sans-serif;
+  --normal: 'obviously', sans-serif;
+  --condensed: 'obviously-condensed', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body {
+  font-family: var(--bold);
+  background-color: var(--bg-mesa);
+  color: var(--marrom);
+  text-transform: uppercase;
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  max-width: 1366px;
+  margin: 0 auto;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* #endregion 1. VARIÁVEIS E CONFIGURAÇÕES GLOBAIS */
+
+
+/* #region 2. ESTRUTURA DO LAYOUT */
+.layout-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 320px;
+  /* Levemente mais largo para acomodar os novos botões */
+  min-width: 320px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid #E0E0E0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 25px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.main-content {
+  flex: 1;
+  background-color: var(--bg-mesa);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* #endregion 2. ESTRUTURA DO LAYOUT */
+
+
+/* #region 3. SIDEBAR E COMPONENTES VISUAIS */
+.logo-container {
+  text-align: center;
+  width: 100%;
+  background: var(--laranja);
+  padding: 5px;
+  border-radius: 8px;
+}
+
+.dev-felps {
+  margin-top: 10px;
+  font-family: var(--normal);
+  font-size: 9px;
+  color: #999;
+  text-align: center;
+  margin-bottom: 35px;
+
+}
+
+.dev-felps a {
+  color: #999;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.logo {
+  max-width: 140px;
+
+}
+
+/* Títulos de Seção (TIPO DE ETIQUETA, PRODUTOS) */
+.section-title {
+  color: var(--marrom);
+  font-size: 11px;
+  font-weight: 900;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.5px;
+}
+
+/* --- Radio Buttons --- */
+.radio-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--marrom);
+  cursor: pointer;
+}
+
+.radio-option input {
+  accent-color: var(--marrom);
+  /* Radio button marrom igual à imagem */
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* --- Botões de Ação (A nova hierarquia visual) --- */
+.sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.btn-action {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 6px;
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+}
+
+.btn-action:active {
+  transform: scale(0.98);
+}
+
+/* Botão Laranja (Imprimir) */
+.btn-orange {
+  background: var(--laranja);
+  color: var(--branco);
+  border: none;
+  box-shadow: 0 4px 15px rgba(241, 89, 33, 0.25);
+}
+
+.btn-orange:hover {
+  background: #d44d1c;
+}
+
+/* Botão Vazado (Selecionar Tudo) */
+.btn-outline {
+  background: var(--branco);
+  border: 1px solid var(--laranja);
+  color: var(--laranja);
+}
+
+.btn-outline:hover {
+  background: #fff5f0;
+}
+
+/* Checkbox dentro do botão Selecionar Tudo */
+.btn-outline input[type="checkbox"] {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--laranja);
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+.btn-outline input[type="checkbox"]:checked {
+  background-color: var(--laranja);
+}
+
+.btn-outline input[type="checkbox"]:checked::after {
+  content: '✔';
+  position: absolute;
+  color: white;
+  font-size: 10px;
+  left: 2px;
+  top: 0px;
+}
+
+/* Botão Marrom (Editar Validades) */
+.btn-brown {
+  background: var(--marrom);
+  color: var(--branco);
+  border: none;
+}
+
+.btn-brown:hover {
+  background: #3c1111;
+}
+
+/* --- Acordion de Produtos --- */
+.category-group {
+  margin-bottom: 8px;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background-color: var(--branco);
+  border: 1px solid var(--borda-suave);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.category-row:hover {
+  border-color: #dcdcdc;
+}
+
+.folder-icon {
+  font-size: 10px;
+  color: var(--laranja);
+}
+
+.category-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--marrom);
+}
+
+.product-submenu {
+  list-style: none;
+  padding: 8px 0 10px 10px;
+}
+
+.product-submenu li {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-family: var(--normal);
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.product-submenu li:hover {
+  background-color: #EFEFEF;
+}
+
+.product-submenu li.active {
+  background-color: var(--laranja);
+  color: var(--branco);
+}
+
+.select-all-cat {
+  color: var(--laranja);
+  font-weight: 900;
+  border: 1px dashed var(--laranja) !important;
+  margin-bottom: 8px !important;
+}
+
+/* #endregion 3. SIDEBAR E COMPONENTES VISUAIS */
+
+
+/* #region 4. ÁREA DE TRABALHO E PREVIEW A4 */
+.toolbar-topo {
+  width: 21cm;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.preview-folha {
+  background-color: white;
+  width: 21cm;
+  height: 29.7cm;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 9.5cm 9.5cm;
+  grid-template-rows: repeat(6, 4.5cm);
+  gap: 0.1cm;
+  padding: 1cm .7cm;
+  margin-bottom: 30px;
+  page-break-after: always;
+}
+
+.empty-message {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #ccc;
+  font-family: var(--normal);
+  font-size: 14px;
+  text-align: center;
+  border: 2px dashed #eee;
+  margin: 20px;
+}
+
+/* #endregion 4. ÁREA DE TRABALHO E PREVIEW A4 */
+
+
+/* #region 5. ETIQUETA NORMAL */
+.etiqueta.normal {
+  position: relative;
+  width: 9.5cm;
+  height: 4.5cm;
+  background: var(--branco);
+  border: 1px dashed #ccc;
+  display: flex;
+  flex-direction: column;
+  padding: 15px 15px 10px 15px;
+  overflow: hidden;
+  text-transform: uppercase;
+}
+
+.borda-topo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: var(--laranja) !important;
+}
+
+.logo-container-etiqueta {
+  position: absolute;
+  top: 0;
+  right: 15px;
+  width: 65px;
+  height: 50px;
+  background-color: var(--laranja) !important;
+  border-radius: 0 0 10px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.logo-svg {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.etiqueta-header {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.tipo-gramatura {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.tipo {
+  font-family: var(--bold);
+  font-size: 12pt;
+  font-weight: 500;
+  color: var(--laranja);
+}
+
+.gramatura {
+  font-family: var(--bold);
+  font-size: 8pt;
+  font-weight: 300;
+  color: var(--laranja);
+  text-transform: lowercase;
+}
+
+.sabor {
+  font-family: var(--normal);
+  font-stretch: condensed;
+  letter-spacing: -0.8px;
+  font-size: 18pt;
+  font-weight: 700;
+  color: var(--marrom);
+  line-height: 1.1;
+  width: 75%;
+  margin-top: 0px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.etiqueta-footer {
+  margin-top: auto;
+}
+
+.bloco-preco {
+  display: flex;
+  align-items: baseline;
+  color: var(--laranja);
+  position: absolute;
+  bottom: 5px;
+}
+
+.moeda {
+  font-family: var(--bold);
+  font-size: 19.5pt;
+  font-weight: 900;
+  margin-right: 5px;
+}
+
+.reais {
+  font-family: var(--bold);
+  font-size: 53pt;
+  font-weight: 900;
+  line-height: 0.7;
+  letter-spacing: -1.5px;
+}
+
+.centavos {
+  font-family: var(--bold);
+  font-size: 30.2pt;
+  font-weight: 900;
+  line-height: 0.7;
+}
+
+/* #endregion 5. ETIQUETA NORMAL */
+
+
+/* #region 6. ETIQUETA DE/POR */
+.etiqueta.depor {
+  position: relative;
+  width: 9.5cm;
+  height: 4.5cm;
+  background-color: var(--amarelo);
+  border: 1px dashed #ccc;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 15px;
+  overflow: hidden;
+}
+
+.dp-faixa-marrom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-color: var(--marrom);
+}
+
+.dp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.dp-cat-gram {
+  font-family: var(--bold);
+  letter-spacing: -0.2px;
+  font-size: 10pt;
+  font-weight: 500;
+  color: var(--laranja);
+}
+
+.dp-sabor {
+  font-family: var(--normal);
+  font-stretch: condensed;
+  font-size: 14.3pt;
+  font-weight: 700;
+  color: var(--marrom);
+  line-height: 0.95;
+  margin-top: 2px;
+  max-width: 140px;
+  letter-spacing: -0.5px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dp-tana {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 25.5pt;
+  color: var(--laranja);
+  text-align: right;
+  line-height: 0.8;
+  letter-spacing: -2px;
+  margin-top: -2px;
+  transform: translateX(16px);
+}
+
+.dp-de-bloco {
+  position: absolute;
+  bottom: 12px;
+  left: 15px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  color: var(--marrom);
+}
+
+.dp-de-texto {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 6pt;
+  line-height: 0.9;
+  margin-bottom: 2px;
+}
+
+.dp-de-texto span {
+  color: var(--laranja);
+  margin-bottom: 3px;
+}
+
+.dp-de-preco {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 19pt;
+  letter-spacing: -1px;
+  line-height: 0.8;
+  transform: translateY(-2px);
+}
+
+.dp-shape {
+  position: absolute;
+  bottom: 15px;
+  right: 0;
+  width: 61%;
+  height: 50%;
+  background-color: var(--laranja);
+  border-radius: 20px 0 0 20px;
+  padding: 4px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dp-shape-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+
+.dp-exclusivo {
+  font-family: var(--bold);
+  font-weight: 700;
+  font-size: 3.5pt;
+  color: var(--branco);
+  text-align: right;
+  line-height: 1;
+  align-items: baseline;
+}
+
+.dp-logo-clube {
+  height: 14px;
+  width: 35%;
+  object-fit: contain;
+}
+
+.dp-por-bloco {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  color: var(--branco);
+  gap: 4px;
+  padding-left: 5px;
+}
+
+.dp-por-texto {
+  font-family: var(--bold);
+  color: var(--marrom);
+  font-weight: 900;
+  font-size: 5.5pt;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.dp-por-preco {
+  display: flex;
+  transform: translate(-20px, 22px);
+}
+
+.dp-por-texto span {
+  color: var(--branco);
+}
+
+.dp-reais,
+.dp-virgula,
+.dp-centavos {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 38pt;
+  line-height: 0.7;
+  letter-spacing: -2px;
+}
+
+.dp-virgula {
+  margin: 0 2px;
+}
+
+/* #endregion 6. ETIQUETA DE/POR */
+
+
+/* #region 7. ETIQUETA KIT E KIT DE/POR */
+.kit-wrapper {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+}
+
+.etiqueta.kit {
+  width: 100%;
+  background-color: var(--branco);
+  border: 1px solid var(--borda-suave);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--normal);
+}
+
+.kit-header {
+  background-color: var(--laranja);
+  color: var(--branco);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.kit-name-input {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  color: var(--branco);
+  font-family: var(--bold);
+  font-size: 16pt;
+  font-weight: 900;
+  padding: 5px;
+  width: 50%;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.kit-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.kit-name-text {
+  font-family: var(--bold);
+  font-size: 16pt;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.kit-logo {
+  height: 25px;
+  object-fit: contain;
+  margin: auto;
+}
+
+.kit-subheader {
+  background-color: var(--amarelo);
+  color: var(--marrom);
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 12pt;
+  display: grid;
+  grid-template-columns: 1fr 120px 120px;
+}
+
+.kit-subheader>div {
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kit-subheader .col-produto {
+  justify-content: flex-start;
+}
+
+.kit-subheader .col-validade,
+.kit-subheader .col-preco {
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.kit-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.kit-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px;
+  border-bottom: 1px solid var(--borda-suave);
+  align-items: stretch;
+  color: var(--marrom);
+  font-size: 11pt;
+}
+
+.col-produto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+}
+
+.col-validade,
+.col-preco {
+  border-left: 1px solid var(--borda-suave);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.row-number {
+  font-family: var(--bold);
+  font-weight: 900;
+  color: var(--marrom);
+  font-size: 10pt;
+  width: 20px;
+}
+
+.row-controls {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+}
+
+.qtd-input {
+  width: 45px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+.prod-select {
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #ccc;
+}
+
+.btn-remove {
+  background: #fee;
+  color: red;
+  border: none;
+  padding: 0 8px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.btn-add-row {
+  background: var(--bg-mesa);
+  border: 1px dashed #ccc;
+  padding: 10px;
+  margin: 10px;
+  cursor: pointer;
+  font-family: var(--bold);
+  color: #666;
+  border-radius: 6px;
+}
+
+.kit-footer {
+  background-color: var(--laranja);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  margin-top: auto;
+}
+
+.kit-warning {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: var(--branco);
+  font-family: var(--bold);
+  font-weight: 700;
+  font-size: 9pt;
+  line-height: 1.2;
+}
+
+.icon-alert {
+  font-size: 20pt;
+  font-weight: 900;
+}
+
+.kit-total-area {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.total-label {
+  color: var(--branco);
+  font-family: var(--normal);
+  font-weight: 700;
+  font-size: 14pt;
+}
+
+.total-box {
+  background-color: var(--branco);
+  padding: 5px 15px;
+  border-radius: 2px;
+  color: var(--marrom);
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.moeda-total {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 12pt;
+}
+
+.valor-total {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 16pt;
+}
+
+.moeda.kit {
+  font-size: 12pt;
+  font-weight: 500;
+}
+
+.kit-companion-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.companion-title {
+  text-align: center;
+  font-family: var(--bold);
+  color: #999;
+  font-size: 11px;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+/* Modificadores Kit de Por */
+.kit-total-area.depor-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.total-de {
+  color: var(--marrom);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  opacity: 0.8;
+}
+
+.texto-de {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 10pt;
+}
+
+.valor-de {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 12pt;
+  text-decoration: line-through;
+}
+
+.total-por {
+  background-color: var(--branco);
+  padding: 4px 15px;
+  border-radius: 4px;
+  color: var(--laranja);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.texto-por {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 10pt;
+}
+
+.valor-por {
+  font-family: var(--bold);
+  font-weight: 900;
+  font-size: 18pt;
+  letter-spacing: -1px;
+}
+
+.show-print {
+  display: none;
+}
+
+/* --- AJUSTES FINAIS DO KIT --- */
+
+/* 1. Trava o select para não estourar a grade e desalinhar a tabela */
+.col-produto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  min-width: 0;
+  /* O segredo para o grid não esticar */
+}
+
+.row-controls {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.prod-select {
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #ccc;
+  min-width: 0;
+  /* Impede o select de empurrar as colunas */
+  text-overflow: ellipsis;
+}
+
+/* 2. Input de Validade Editável na Etiqueta */
+.input-validade-kit {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-family: var(--bold);
+  font-size: 11pt;
+  color: var(--marrom);
+  outline: none;
+}
+
+.input-validade-kit::placeholder {
+  color: #ccc;
+  font-weight: 300;
+}
+
+@media screen {
+
+  /* Dá uma bordinha pontilhada só na tela pra mostrar que é clicável */
+  .input-validade-kit:hover,
+  .input-validade-kit:focus {
+    border-bottom: 1px dashed var(--laranja);
+  }
+}
+
+/* 3. Inversão de Cores no KIT DE POR */
+.etiqueta.kit.depor-theme .kit-subheader {
+  background-color: var(--marrom);
+  color: var(--branco);
+}
+
+.etiqueta.kit.depor-theme .kit-row {
+  background-color: var(--amarelo);
+}
+
+/* #endregion 7. ETIQUETA KIT E KIT DE/POR */
+
+
+/* #region 8. REGRAS DE IMPRESSÃO */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .area-impressao,
+  .area-impressao * {
+    visibility: visible;
+  }
+
+  .area-impressao {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 21cm;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  .preview-folha {
+    box-shadow: none;
+    border: none;
+    padding: 1cm 0.7cm;
+  }
+
+  .etiqueta.normal {
+    border: 1px dashed #ccc !important;
+  }
+
+  .hide-print {
+    display: none !important;
+  }
+
+  .show-print {
+    display: block !important;
+  }
+
+  .kit-wrapper {
+    gap: 10px;
+  }
+
+  .input-validade-kit::-webkit-input-placeholder {
+    color: transparent !important;
+  }
+
+  .input-validade-kit::-moz-placeholder {
+    color: transparent !important;
+  }
+
+  .input-validade-kit:-ms-input-placeholder {
+    color: transparent !important;
+  }
+
+  .input-validade-kit::placeholder {
+    color: transparent !important;
+  }
+}
+
+
+/* #endregion 8. REGRAS DE IMPRESSÃO */
