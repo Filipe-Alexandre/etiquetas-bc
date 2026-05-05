@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import logo2 from '../assets/logo2.svg';
 import { EtiquetaNormal } from './EtiquetaNormal';
+import Barcode from 'react-barcode'; // <--- IMPORT DA BIBLIOTECA
 
 export function EtiquetaKit({ todosProdutos, bancoDeDados }) {
     const [kitName, setKitName] = useState("");
+    const [barcodeValue, setBarcodeValue] = useState(""); // <--- ESTADO DO CÓDIGO DE BARRAS
     const [rows, setRows] = useState([
         { id: "", qtd: 1 },
         { id: "", qtd: 1 },
@@ -150,6 +152,30 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados }) {
                     <div className="kit-warning">
                         <span className="icon-alert">!</span>
                         <p>Informações nutricionais e alergênicos,<br />consulte a embalagem do produto</p>
+                    </div>
+
+                    {/* --- ÁREA DO CÓDIGO DE BARRAS AQUI --- */}
+                    <div className="kit-barcode-area">
+                        <input
+                            type="text"
+                            className="barcode-input hide-print"
+                            placeholder="Cód. Barras (Opcional)"
+                            value={barcodeValue}
+                            onChange={(e) => setBarcodeValue(e.target.value)}
+                        />
+                        {barcodeValue && (
+                            <div className="barcode-display">
+                                <Barcode 
+                                    value={barcodeValue} 
+                                    width={1.5} 
+                                    height={30} 
+                                    fontSize={12} 
+                                    background="#ffffff" 
+                                    margin={2} 
+                                    displayValue={true}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="kit-total-area">
