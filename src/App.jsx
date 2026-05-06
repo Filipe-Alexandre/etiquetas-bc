@@ -21,7 +21,7 @@ function App() {
   const [discountType, setDiscountType] = useState('percent'); 
   const [discountValue, setDiscountValue] = useState(15); 
 
-  const carregarDadosDoFirebase = async () => {
+const carregarDadosDoFirebase = async () => {
     setCarregando(true);
     try {
       const querySnapshot = await getDocs(collection(db, "produtos"));
@@ -29,9 +29,17 @@ function App() {
 
       const listaProdutos = querySnapshot.docs.map(doc => {
         const dadosBanco = doc.data();
+        let cat = dadosBanco.categoria;
+        
+        // REGRA DE DIVISÃO DO PEGUE E LEVE
+        if (cat === 'PEGUE E LEVE') {
+            cat = dadosBanco.complemento.includes('TRUFA') ? 'MINI TRUFA' : 'MINI TABLETE';
+        }
+
         return {
           id: doc.id,
           ...dadosBanco,
+          categoria: cat,
           validade: validadesLocais[doc.id] !== undefined ? validadesLocais[doc.id] : (dadosBanco.validade || "")
         };
       });
@@ -42,7 +50,21 @@ function App() {
         return acc;
       }, {});
 
-      setBancoDeDados(bdAgrupado);
+      // REGRA DE ORDENAÇÃO DO SIDEBAR
+      const ordemFinal = ['ACESSÓRIOS', 'ALMOFADA', 'CANECA', 'LATA', 'PELÚCIA', 'SEM CATEGORIA'];
+      const categoriasOrdenadas = Object.keys(bdAgrupado).sort((a, b) => {
+        const indexA = ordemFinal.indexOf(a);
+        const indexB = ordemFinal.indexOf(b);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB; 
+        if (indexA !== -1) return 1; 
+        if (indexB !== -1) return -1; 
+        return a.localeCompare(b);
+      });
+
+      const bdFinal = {};
+      categoriasOrdenadas.forEach(c => bdFinal[c] = bdAgrupado[c]);
+
+      setBancoDeDados(bdFinal);
     } catch (error) {
       console.error("Erro ao buscar dados do Firebase:", error);
     } finally {

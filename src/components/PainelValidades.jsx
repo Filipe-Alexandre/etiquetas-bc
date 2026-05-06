@@ -1,38 +1,29 @@
 // src/components/PainelValidades.jsx
 import React, { useState } from 'react';
-import { db } from '../data/firebaseConfig'; // Ajuste o caminho se o seu for firebase.js
+import { db } from '../data/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 
 export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }) {
-  // Estado para armazenar o que o usuário está digitando antes de salvar
   const [validadesEditadas, setValidadesEditadas] = useState({});
   const [salvandoId, setSalvandoId] = useState(null);
+  const [buscaVal, setBuscaVal] = useState(""); // <-- NOVO ESTADO DE BUSCA
 
-  // Atualiza o valor no input temporariamente
   const handleChange = (id, valor) => {
     setValidadesEditadas(prev => ({ ...prev, [id]: valor }));
   };
 
-  // Envia a nova validade para o Firebase
-const salvarValidade = async (produto) => {
+  const salvarValidade = async (produto) => {
     const novaValidade = validadesEditadas[produto.id];
     
     if (novaValidade === undefined || novaValidade === produto.validade) return;
 
     setSalvandoId(produto.id);
     try {
-      // 1. Pega as validades que já existem no computador da pessoa
       const validadesLocais = JSON.parse(localStorage.getItem('minhas_validades')) || {};
-      
-      // 2. Atualiza a validade específica desse produto
       validadesLocais[produto.id] = novaValidade;
-      
-      // 3. Salva de volta no computador
       localStorage.setItem('minhas_validades', JSON.stringify(validadesLocais));
-
       alert(`Validade salva LOCALMENTE com sucesso!`);
-      
-      recarregarDados(); // Recarrega a tela para mostrar a nova data
+      recarregarDados();
     } catch (error) {
       console.error("Erro ao salvar localmente:", error);
       alert("Erro ao salvar no seu aparelho.");
@@ -41,11 +32,27 @@ const salvarValidade = async (produto) => {
     }
   };
 
+  // Lógica de filtro da tabela
+  const produtosFiltrados = todosProdutos.filter(p => 
+    p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) || 
+    p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
+  );
+
   return (
     <div className="painel-overlay" style={overlayStyle}>
       <div className="painel-modal" style={modalStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ color: 'var(--laranja)', margin: 0 }}>Gestão de Validades</h2>
+          
+          {/* BARRA DE PESQUISA DO PAINEL */}
+          <input 
+            type="text" 
+            placeholder="🔍 Buscar produto ou categoria..."
+            value={buscaVal}
+            onChange={(e) => setBuscaVal(e.target.value)}
+            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '300px', fontFamily: 'var(--bold)' }}
+          />
+
           <button onClick={fecharPainel} style={btnFecharStyle}>✖ FECHAR</button>
         </div>
 
@@ -61,7 +68,7 @@ const salvarValidade = async (produto) => {
               </tr>
             </thead>
             <tbody>
-              {todosProdutos.map(prod => (
+              {produtosFiltrados.map(prod => (
                 <tr key={prod.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={tdStyle}><b>{prod.categoria}</b></td>
                   <td style={tdStyle}>{prod.complemento} {prod.gramatura}</td>
@@ -97,7 +104,6 @@ const salvarValidade = async (produto) => {
   );
 }
 
-// --- Estilos Inline básicos para o modal funcionar direto ---
 const overlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 };
 const modalStyle = { background: '#fff', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '900px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' };
 const btnFecharStyle = { background: '#fee', color: 'red', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' };

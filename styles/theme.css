@@ -7,9 +7,7 @@
   --amarelo: #FEC751;
   --branco: #FFFFFF;
   --bg-mesa: #FAFAFA;
-  /* Fundo da área de trabalho */
   --bg-sidebar: #F2F2F2;
-  /* Sidebar levemente cinza */
   --borda-suave: #EAEAEA;
 
   /* Fontes Adobe */
@@ -43,7 +41,6 @@ body {
   flex-direction: row;
   overflow: hidden;
 }
-
 /* #endregion 1. VARIÁVEIS E CONFIGURAÇÕES GLOBAIS */
 
 
@@ -57,7 +54,6 @@ body {
 
 .sidebar {
   width: 320px;
-  /* Levemente mais largo para acomodar os novos botões */
   min-width: 320px;
   background-color: var(--bg-sidebar);
   border-right: 1px solid #E0E0E0;
@@ -78,7 +74,6 @@ body {
   height: 100vh;
   overflow-y: auto;
 }
-
 /* #endregion 2. ESTRUTURA DO LAYOUT */
 
 
@@ -98,7 +93,6 @@ body {
   color: #999;
   text-align: center;
   margin-bottom: 35px;
-
 }
 
 .dev-felps a {
@@ -109,10 +103,8 @@ body {
 
 .logo {
   max-width: 140px;
-
 }
 
-/* Títulos de Seção (TIPO DE ETIQUETA, PRODUTOS) */
 .section-title {
   color: var(--marrom);
   font-size: 11px;
@@ -121,7 +113,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* --- Radio Buttons --- */
 .radio-group-vertical {
   display: flex;
   flex-direction: column;
@@ -141,13 +132,11 @@ body {
 
 .radio-option input {
   accent-color: var(--marrom);
-  /* Radio button marrom igual à imagem */
   width: 14px;
   height: 14px;
   cursor: pointer;
 }
 
-/* --- Botões de Ação (A nova hierarquia visual) --- */
 .sidebar-actions {
   display: flex;
   flex-direction: column;
@@ -175,7 +164,6 @@ body {
   transform: scale(0.98);
 }
 
-/* Botão Laranja (Imprimir) */
 .btn-orange {
   background: var(--laranja);
   color: var(--branco);
@@ -187,7 +175,6 @@ body {
   background: #d44d1c;
 }
 
-/* Botão Vazado (Selecionar Tudo) */
 .btn-outline {
   background: var(--branco);
   border: 1px solid var(--laranja);
@@ -198,7 +185,6 @@ body {
   background: #fff5f0;
 }
 
-/* Checkbox dentro do botão Selecionar Tudo */
 .btn-outline input[type="checkbox"] {
   appearance: none;
   width: 16px;
@@ -222,7 +208,6 @@ body {
   top: 0px;
 }
 
-/* Botão Marrom (Editar Validades) */
 .btn-brown {
   background: var(--marrom);
   color: var(--branco);
@@ -233,7 +218,6 @@ body {
   background: #3c1111;
 }
 
-/* --- Acordion de Produtos --- */
 .category-group {
   margin-bottom: 8px;
 }
@@ -289,13 +273,12 @@ body {
   color: var(--branco);
 }
 
-.select-all-cat {
+.product-submenu .select-all-cat {
   color: var(--laranja);
   font-weight: 900;
-  border: 1px dashed var(--laranja) !important;
-  margin-bottom: 8px !important;
+  border: 1px dashed var(--laranja);
+  margin-bottom: 8px;
 }
-
 /* #endregion 3. SIDEBAR E COMPONENTES VISUAIS */
 
 
@@ -334,15 +317,14 @@ body {
   border: 2px dashed #eee;
   margin: 20px;
 }
-
 /* #endregion 4. ÁREA DE TRABALHO E PREVIEW A4 */
 
 
 /* #region 5. ETIQUETA NORMAL */
 .etiqueta.normal {
   position: relative;
-  width: 9.5cm;
-  height: 4.5cm;
+  width: 8cm;
+  height: 4cm;
   background: var(--branco);
   border: 1px dashed #ccc;
   display: flex;
@@ -358,7 +340,7 @@ body {
   left: 0;
   right: 0;
   height: 10px;
-  background-color: var(--laranja) !important;
+  background-color: var(--laranja);
 }
 
 .logo-container-etiqueta {
@@ -367,7 +349,7 @@ body {
   right: 15px;
   width: 65px;
   height: 50px;
-  background-color: var(--laranja) !important;
+  background-color: var(--laranja);
   border-radius: 0 0 10px 10px;
   display: flex;
   align-items: center;
@@ -416,7 +398,7 @@ body {
   font-family: var(--normal);
   font-stretch: condensed;
   letter-spacing: -0.8px;
-  font-size: 18pt;
+  font-size: 14pt;
   font-weight: 700;
   color: var(--marrom);
   line-height: 1.1;
@@ -442,14 +424,14 @@ body {
 
 .moeda {
   font-family: var(--bold);
-  font-size: 19.5pt;
+  font-size: 14pt;
   font-weight: 900;
   margin-right: 5px;
 }
 
 .reais {
   font-family: var(--bold);
-  font-size: 53pt;
+  font-size: 40pt;
   font-weight: 900;
   line-height: 0.7;
   letter-spacing: -1.5px;
@@ -457,19 +439,18 @@ body {
 
 .centavos {
   font-family: var(--bold);
-  font-size: 30.2pt;
+  font-size: 22pt;
   font-weight: 900;
   line-height: 0.7;
 }
-
 /* #endregion 5. ETIQUETA NORMAL */
 
 
 /* #region 6. ETIQUETA DE/POR */
 .etiqueta.depor {
   position: relative;
-  width: 9.5cm;
-  height: 4.5cm;
+  width: 8cm;
+  height: 4cm;
   background-color: var(--amarelo);
   border: 1px dashed #ccc;
   display: flex;
@@ -505,7 +486,7 @@ body {
 .dp-sabor {
   font-family: var(--normal);
   font-stretch: condensed;
-  font-size: 14.3pt;
+  font-size: 12pt;
   font-weight: 700;
   color: var(--marrom);
   line-height: 0.95;
@@ -521,7 +502,7 @@ body {
 .dp-tana {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 25.5pt;
+  font-size: 22pt;
   color: var(--laranja);
   text-align: right;
   line-height: 0.8;
@@ -556,7 +537,7 @@ body {
 .dp-de-preco {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 19pt;
+  font-size: 15pt;
   letter-spacing: -1px;
   line-height: 0.8;
   transform: translateY(-2px);
@@ -631,7 +612,7 @@ body {
 .dp-centavos {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 38pt;
+  font-size: 30pt;
   line-height: 0.7;
   letter-spacing: -2px;
 }
@@ -639,7 +620,6 @@ body {
 .dp-virgula {
   margin: 0 2px;
 }
-
 /* #endregion 6. ETIQUETA DE/POR */
 
 
@@ -654,6 +634,8 @@ body {
 
 .etiqueta.kit {
   width: 100%;
+  max-width: 12cm;
+  margin: 0 auto;
   background-color: var(--branco);
   border: 1px solid var(--borda-suave);
   display: flex;
@@ -667,7 +649,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 8px 15px; /* Reduzido o padding */
 }
 
 .kit-name-input {
@@ -675,9 +657,9 @@ body {
   border: 1px dashed rgba(255, 255, 255, 0.5);
   color: var(--branco);
   font-family: var(--bold);
-  font-size: 16pt;
+  font-size: 12pt; /* Reduzido de 16pt */
   font-weight: 900;
-  padding: 5px;
+  padding: 4px;
   width: 50%;
   text-transform: uppercase;
   outline: none;
@@ -689,13 +671,13 @@ body {
 
 .kit-name-text {
   font-family: var(--bold);
-  font-size: 16pt;
+  font-size: 12pt; /* Reduzido de 16pt */
   font-weight: 900;
   text-transform: uppercase;
 }
 
 .kit-logo {
-  height: 25px;
+  height: 20px; /* Reduzido um pouco */
   object-fit: contain;
   margin: auto;
 }
@@ -705,13 +687,13 @@ body {
   color: var(--marrom);
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 12pt;
+  font-size: 8pt; /* Reduzido de 10pt */
   display: grid;
-  grid-template-columns: 1fr 120px 120px;
+  grid-template-columns: 1fr 90px 90px; /* Colunas um pouco mais estreitas */
 }
 
 .kit-subheader>div {
-  padding: 8px 20px;
+  padding: 3px 8px; /* Padding espremido */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -733,24 +715,32 @@ body {
 
 .kit-row {
   display: grid;
-  grid-template-columns: 1fr 120px 120px;
+  grid-template-columns: 1fr 90px 90px; /* Acompanha o header */
   border-bottom: 1px solid var(--borda-suave);
-  align-items: stretch;
+  align-items: center;
   color: var(--marrom);
-  font-size: 11pt;
+  min-height: 24px; /* Linha ainda mais compacta */
+  font-size: 8.5pt;
 }
 
 .col-produto {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 20px;
+  gap: 6px; /* Gap menor */
+  padding: 2px 8px; /* Padding enxuto */
+  min-width: 0;
+}
+
+.kit-row .show-print {
+  font-size: 6.5pt; /* Reduzido de 7.5pt (letra bem pequena pra caber tudo) */
+  line-height: 1.1;
+  margin: 0;
 }
 
 .col-validade,
 .col-preco {
   border-left: 1px solid var(--borda-suave);
-  padding: 8px 10px;
+  padding: 2px 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -764,34 +754,40 @@ body {
   font-family: var(--bold);
   font-weight: 900;
   color: var(--marrom);
-  font-size: 10pt;
-  width: 20px;
+  font-size: 7pt; /* Reduzido de 9pt */
+  width: 12px;
 }
 
 .row-controls {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex: 1;
+  min-width: 0;
+  padding: 2px 0;
 }
 
 .qtd-input {
-  width: 45px;
-  padding: 4px;
+  width: 35px;
+  padding: 2px;
   border: 1px solid #ccc;
   text-align: center;
+  font-size: 8pt; /* Reduzido */
 }
 
 .prod-select {
   flex: 1;
-  padding: 4px;
+  padding: 2px;
   border: 1px solid #ccc;
+  min-width: 0;
+  text-overflow: ellipsis;
+  font-size: 8pt; /* Reduzido */
 }
 
 .btn-remove {
   background: #fee;
   color: red;
   border: none;
-  padding: 0 8px;
+  padding: 0 5px;
   cursor: pointer;
   border-radius: 4px;
 }
@@ -799,12 +795,13 @@ body {
 .btn-add-row {
   background: var(--bg-mesa);
   border: 1px dashed #ccc;
-  padding: 10px;
-  margin: 10px;
+  padding: 6px;
+  margin: 6px;
   cursor: pointer;
   font-family: var(--bold);
   color: #666;
   border-radius: 6px;
+  font-size: 8pt;
 }
 
 .kit-footer {
@@ -812,63 +809,63 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 8px 15px; /* Padding reduzido */
   margin-top: auto;
 }
 
 .kit-warning {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   color: var(--branco);
   font-family: var(--bold);
   font-weight: 700;
-  font-size: 9pt;
-  line-height: 1.2;
+  font-size: 5.5pt; /* Reduzido de 8pt */
+  line-height: 1.1;
 }
 
 .icon-alert {
-  font-size: 20pt;
+  font-size: 11pt; /* Reduzido de 18pt */
   font-weight: 900;
 }
 
 .kit-total-area {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .total-label {
   color: var(--branco);
   font-family: var(--normal);
   font-weight: 700;
-  font-size: 14pt;
+  font-size: 10pt; /* Reduzido de 12pt */
 }
 
 .total-box {
   background-color: var(--branco);
-  padding: 5px 15px;
+  padding: 3px 10px;
   border-radius: 2px;
   color: var(--marrom);
   display: flex;
   align-items: baseline;
-  gap: 5px;
+  gap: 4px;
 }
 
 .moeda-total {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 12pt;
+  font-size: 9pt; /* Reduzido de 11pt */
 }
 
 .valor-total {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 16pt;
+  font-size: 12pt; /* Reduzido de 14pt */
 }
 
 .moeda.kit {
-  font-size: 12pt;
+  font-size: 8pt; /* Reduzido de 10pt */
   font-weight: 500;
 }
 
@@ -882,12 +879,11 @@ body {
   text-align: center;
   font-family: var(--bold);
   color: #999;
-  font-size: 11px;
-  margin-bottom: 10px;
+  font-size: 10px;
+  margin-bottom: 8px;
   letter-spacing: 1px;
 }
 
-/* Modificadores Kit de Por */
 .kit-total-area.depor-mode {
   display: flex;
   flex-direction: column;
@@ -906,37 +902,37 @@ body {
 .texto-de {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 10pt;
+  font-size: 7pt; /* Reduzido de 9pt */
 }
 
 .valor-de {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 12pt;
+  font-size: 9pt; /* Reduzido de 11pt */
   text-decoration: line-through;
 }
 
 .total-por {
   background-color: var(--branco);
-  padding: 4px 15px;
+  padding: 3px 10px;
   border-radius: 4px;
   color: var(--laranja);
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 5px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .texto-por {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 10pt;
+  font-size: 7pt; /* Reduzido de 9pt */
 }
 
 .valor-por {
   font-family: var(--bold);
   font-weight: 900;
-  font-size: 18pt;
+  font-size: 13pt; /* Reduzido de 16pt */
   letter-spacing: -1px;
 }
 
@@ -944,42 +940,13 @@ body {
   display: none;
 }
 
-/* --- AJUSTES FINAIS DO KIT --- */
-
-/* 1. Trava o select para não estourar a grade e desalinhar a tabela */
-.col-produto {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 20px;
-  min-width: 0;
-  /* O segredo para o grid não esticar */
-}
-
-.row-controls {
-  display: flex;
-  gap: 5px;
-  flex: 1;
-  min-width: 0;
-}
-
-.prod-select {
-  flex: 1;
-  padding: 4px;
-  border: 1px solid #ccc;
-  min-width: 0;
-  /* Impede o select de empurrar as colunas */
-  text-overflow: ellipsis;
-}
-
-/* 2. Input de Validade Editável na Etiqueta */
 .input-validade-kit {
   width: 100%;
   border: none;
   background: transparent;
   text-align: center;
   font-family: var(--bold);
-  font-size: 11pt;
+  font-size: 7.5pt; /* Reduzido de 9pt */
   color: var(--marrom);
   outline: none;
 }
@@ -990,15 +957,12 @@ body {
 }
 
 @media screen {
-
-  /* Dá uma bordinha pontilhada só na tela pra mostrar que é clicável */
   .input-validade-kit:hover,
   .input-validade-kit:focus {
     border-bottom: 1px dashed var(--laranja);
   }
 }
 
-/* 3. Inversão de Cores no KIT DE POR */
 .etiqueta.kit.depor-theme .kit-subheader {
   background-color: var(--marrom);
   color: var(--branco);
@@ -1008,7 +972,7 @@ body {
   background-color: var(--amarelo);
 }
 
-/* --- CÓDIGO DE BARRAS DO KIT --- */
+/* Código de Barras e Busca no Kit */
 .kit-barcode-area {
   flex: 1;
   display: flex;
@@ -1021,15 +985,15 @@ body {
 .barcode-input {
   width: 100%;
   max-width: 180px;
-  padding: 4px;
+  padding: 3px;
   border: 1px dashed rgba(255, 255, 255, 0.5);
   background: transparent;
   color: #fff;
   text-align: center;
   font-family: var(--bold);
-  font-size: 10pt;
+  font-size: 7.5pt; /* Reduzido de 9pt */
   outline: none;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .barcode-input::placeholder {
@@ -1047,6 +1011,16 @@ body {
   border-radius: 4px;
 }
 
+.search-kit-input {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 1px dashed #ccc;
+  text-align: center;
+  font-weight: bold;
+  color: var(--marrom);
+  outline: none;
+}
 /* #endregion 7. ETIQUETA KIT E KIT DE/POR */
 
 
@@ -1061,6 +1035,7 @@ body {
     visibility: visible;
   }
 
+  /* Uso obrigatório do !important aqui para sobrepor a tela no momento da impressão */
   .area-impressao {
     display: block !important;
     position: absolute;
@@ -1085,7 +1060,7 @@ body {
   }
 
   .etiqueta.normal {
-    border: 1px dashed #ccc !important;
+    border: 1px dashed #ccc;
   }
 
   .hide-print {
@@ -1094,10 +1069,6 @@ body {
 
   .show-print {
     display: block !important;
-  }
-
-  .kit-wrapper {
-    gap: 10px;
   }
 
   .input-validade-kit::-webkit-input-placeholder {
@@ -1116,6 +1087,4 @@ body {
     color: transparent !important;
   }
 }
-
-
 /* #endregion 8. REGRAS DE IMPRESSÃO */
