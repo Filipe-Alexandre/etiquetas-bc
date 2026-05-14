@@ -55,10 +55,10 @@ const categoriasData = [
     nome: "BEM ME FAZ",
     prefixo: "bmf",
     itens: [
-      { comp: "AMENDOIM", gram: "20g", preco: 5.99 },
-      { comp: "AO LEITE", gram: "20g", preco: 6.49 },
-      { comp: "AO LEITE", gram: "90g", preco: 22.99 },
-      { comp: "GATO MIA", gram: "20g", preco: 5.99 },
+      { comp: "BOMBOM AMENDOIM", gram: "20g", preco: 5.99 },
+      { comp: "TABLETE AO LEITE", gram: "20g", preco: 6.49 },
+      { comp: "TABLETE AO LEITE", gram: "90g", preco: 22.99 },
+      { comp: "BOMBOM GATO MIA", gram: "20g", preco: 5.99 },
       { comp: "GATO MIA", gram: "70g", preco: 21.99 }
     ]
   },
@@ -181,14 +181,14 @@ const categoriasData = [
     nome: "PEGUE E LEVE",
     prefixo: "peg",
     itens: [
-      { comp: "MINI 60% CACAU", gram: "10g", preco: 2.99 },
-      { comp: "MINI AO LEITE", gram: "10g", preco: 2.99 },
-      { comp: "MINI AO LEITE CASTANHA DE CAJU", gram: "10g", preco: 2.99 },
-      { comp: "MINI AO LEITE PISTACHE", gram: "12g", preco: 2.99 },
-      { comp: "MINI AVELÃ", gram: "12g", preco: 2.99 },
-      { comp: "MINI GATO MIA", gram: "12g", preco: 2.99 },
-      { comp: "MINI PURO CACAU", gram: "12g", preco: 2.99 },
-      { comp: "MINI TRADICIONAL", gram: "12g", preco: 2.99 }
+      { comp: "PURO CACAU", gram: "10g", preco: 2.99 },
+      { comp: "AO LEITE", gram: "10g", preco: 2.99 },
+      { comp: "AO LEITE CASTANHA DE CAJU", gram: "10g", preco: 2.99 },
+      { comp: "AO LEITE PISTACHE", gram: "12g", preco: 2.99 },
+      { comp: "AVELÃ", gram: "12g", preco: 2.99 },
+      { comp: "GATO MIA", gram: "12g", preco: 2.99 },
+      { comp: "PURO CACAU", gram: "12g", preco: 2.99 },
+      { comp: "TRADICIONAL", gram: "12g", preco: 2.99 }
     ]
   },
   {
@@ -243,6 +243,7 @@ const categoriasData = [
       { comp: "TUBARÃO", gram: "1 UN", preco: 32.90 },
       { comp: "UNICÓRNIO", gram: "1 UN", preco: 32.90 },
       { comp: "UNICÓRNIO BC", gram: "1 UN", preco: 49.90 },
+      { comp: "URSO BALAO CORACAO", gram: "1 UN", preco: 89.90 },
       { comp: "URSO BRANCO", gram: "1 UN", preco: 49.90 },
       { comp: "URSO CORAÇÃO", gram: "1 UN", preco: 32.90 },
       { comp: "URSO CORAÇÃO EU TE AMO MN25", gram: "1 UN", preco: 65.90 },
@@ -403,8 +404,24 @@ const categoriasData = [
       { comp: "CASTANHA DE CAJU", gram: "20g", preco: 5.29 },
       { comp: "CASTANHA DE CAJU", gram: "90g", preco: 19.99 },
       { comp: "OBRIGADO", gram: "40g", preco: 14.99 },
-      { comp: "PARABÉNS", gram: "40g", preco: 14.99 },
-      { comp: "RECHEADO 70% CACAU", gram: "90g", preco: 22.99 }
+      { comp: "PARABÉNS", gram: "40g", preco: 14.99 }
+    ]
+  },
+  {
+    nome: "TABLETE RECHEADO",
+    prefixo: "tab-rech",
+    itens: [
+      { comp: "70% CACAU", gram: "90g", preco: 22.99 },
+      { comp: "ALPINO", gram: "90g", preco: 22.99 },
+      { comp: "AO LEITE TRUFADO OBRIGADO", gram: "90g", preco: 22.99 },
+      { comp: "AO LEITE TRUFADO PARABÉNS", gram: "90g", preco: 22.99 },
+      { comp: "AO LEITE TRUFADO TE AMO", gram: "90g", preco: 22.99 },
+      { comp: "BRIGADEIRO BRASILIDADES", gram: "90g", preco: 22.99 },
+      { comp: "CREME DE AVELÃ", gram: "90g", preco: 22.99 },
+      { comp: "DUO", gram: "90g", preco: 22.99 },
+      { comp: "GATO MIA", gram: "90g", preco: 22.99 },
+      { comp: "LICOR DE CEREJA", gram: "90g", preco: 22.99 },
+      { comp: "PISTACHE", gram: "90g", preco: 22.99 }
     ]
   },
   {

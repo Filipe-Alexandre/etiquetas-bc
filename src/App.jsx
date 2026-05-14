@@ -6,10 +6,10 @@ import { EtiquetaDePor } from './components/EtiquetaDePor';
 import { EtiquetaKit } from './components/EtiquetaKit';
 import { EtiquetaKitDePor } from './components/EtiquetaKitDePor';
 import { PainelValidades } from './components/PainelValidades';
-import { Migracao } from './components/Migracao';
 
-import { db } from './data/firebaseConfig'; 
+import { db } from './data/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
+import { Migracao } from './components/Migracao';
 
 function App() {
   const [bancoDeDados, setBancoDeDados] = useState({});
@@ -17,11 +17,15 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
 
   const [selectedItems, setSelectedItems] = useState([]);
-  const [labelType, setLabelType] = useState("NORMAL");
-  const [discountType, setDiscountType] = useState('percent'); 
-  const [discountValue, setDiscountValue] = useState(15); 
 
-const carregarDadosDoFirebase = async () => {
+  // O NOSSO "CARRINHO" DE KITS
+  const [kitsParaImpressao, setKitsParaImpressao] = useState([]);
+
+  const [labelType, setLabelType] = useState("NORMAL");
+  const [discountType, setDiscountType] = useState('percent');
+  const [discountValue, setDiscountValue] = useState(15);
+
+  const carregarDadosDoFirebase = async () => {
     setCarregando(true);
     try {
       const querySnapshot = await getDocs(collection(db, "produtos"));
@@ -30,10 +34,22 @@ const carregarDadosDoFirebase = async () => {
       const listaProdutos = querySnapshot.docs.map(doc => {
         const dadosBanco = doc.data();
         let cat = dadosBanco.categoria;
-        
-        // REGRA DE DIVISÃO DO PEGUE E LEVE
-        if (cat === 'PEGUE E LEVE') {
-            cat = dadosBanco.complemento.includes('TRUFA') ? 'MINI TRUFA' : 'MINI TABLETE';
+
+        const nomeProduto = (dadosBanco.complemento || "").toUpperCase();
+        const gramatura = dadosBanco.gramatura || "";
+
+        // 1. REGRA DO PEGUE E LEVE
+        if (cat === 'PEGUE E LEVE' || cat === 'MINI TRUFA' || cat === 'MINI TABLETE') {
+          if (nomeProduto.includes('TRUFA') || gramatura === '12g' || gramatura === '30g') {
+            cat = 'MINI TRUFA';
+          } else {
+            cat = 'MINI TABLETE';
+          }
+        }
+
+        // 2. REGRA DO TABLETE RECHEADO
+        if (nomeProduto.includes('RECHEADO')) {
+          cat = 'TABLETE RECHEADO';
         }
 
         return {
@@ -50,14 +66,14 @@ const carregarDadosDoFirebase = async () => {
         return acc;
       }, {});
 
-      // REGRA DE ORDENAÇÃO DO SIDEBAR
+      // 3. ORDENAÇÃO DO SIDEBAR
       const ordemFinal = ['ACESSÓRIOS', 'ALMOFADA', 'CANECA', 'LATA', 'PELÚCIA', 'SEM CATEGORIA'];
       const categoriasOrdenadas = Object.keys(bdAgrupado).sort((a, b) => {
         const indexA = ordemFinal.indexOf(a);
         const indexB = ordemFinal.indexOf(b);
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB; 
-        if (indexA !== -1) return 1; 
-        if (indexB !== -1) return -1; 
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return 1;
+        if (indexB !== -1) return -1;
         return a.localeCompare(b);
       });
 
@@ -106,6 +122,7 @@ const carregarDadosDoFirebase = async () => {
 
   return (
     <div className="layout-wrapper">
+      {/* <Migracao /> */}
       <Sidebar
         selectedItems={selectedItems}
         toggleItem={toggleItem}
@@ -125,51 +142,69 @@ const carregarDadosDoFirebase = async () => {
 
       <main className="main-content">
         {showAdmin && (
-          <PainelValidades 
-            todosProdutos={todosProdutos} 
+          <PainelValidades
+            todosProdutos={todosProdutos}
             fecharPainel={() => setShowAdmin(false)}
             recarregarDados={carregarDadosDoFirebase}
           />
         )}
 
         <div className="area-impressao">
-          {labelType === 'KIT' || labelType === 'KIT DE POR' ? (
-            <div className="preview-folha">
-              {labelType === 'KIT' ? (
-                // PASSANDO O BANCO DE DADOS AQUI
-                <EtiquetaKit todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} />
-              ) : (
-                // PASSANDO O BANCO DE DADOS AQUI
-                <EtiquetaKitDePor
-                  todosProdutos={todosProdutos}
-                  bancoDeDados={bancoDeDados}
-                  discountType={discountType}
-                  discountValue={discountValue}
-                />
-              )}
-            </div>
-          ) : paginas.length > 0 ? (
-            paginas.map((grupo, idx) => (
-              <div key={idx} className="preview-folha">
-                {grupo.map(produto => (
-                  <React.Fragment key={produto.id}>
-                    {labelType === 'NORMAL' && <EtiquetaNormal produto={produto} />}
-                    {labelType === 'DE POR' && (
-                      <EtiquetaDePor
-                        produto={produto}
-                        discountType={discountType}
-                        discountValue={discountValue}
-                      />
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-            ))
-          ) : (
-            <div className="preview-folha" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <p style={{ color: '#999' }}>Selecione produtos para visualizar a folha</p>
-            </div>
+
+{/* ==========================================
+              VARIANTE 1: KIT NORMAL
+              ========================================== */}
+          {labelType === 'KIT' && (
+              <EtiquetaKit 
+                todosProdutos={todosProdutos} 
+                bancoDeDados={bancoDeDados} 
+                kitsParaImpressao={kitsParaImpressao}
+                setKitsParaImpressao={setKitsParaImpressao}
+              />
           )}
+
+          {/* ==========================================
+              VARIANTE 2: KIT DE/POR
+              ========================================== */}
+          {labelType === 'KIT DE POR' && (
+              <EtiquetaKitDePor
+                todosProdutos={todosProdutos}
+                bancoDeDados={bancoDeDados}
+                discountType={discountType}
+                discountValue={discountValue}
+                kitsParaImpressao={kitsParaImpressao}
+                setKitsParaImpressao={setKitsParaImpressao}
+              />
+          )}
+
+          {/* ==========================================
+              VARIANTES 3 e 4: ETIQUETAS INDIVIDUAIS (NORMAL E DE/POR)
+              ========================================== */}
+          {(labelType === 'NORMAL' || labelType === 'DE POR') && (
+            paginas.length > 0 ? (
+              paginas.map((grupo, idx) => (
+                <div key={idx} className="preview-folha">
+                  {grupo.map(produto => (
+                    <React.Fragment key={produto.id}>
+                      {labelType === 'NORMAL' && <EtiquetaNormal produto={produto} />}
+                      {labelType === 'DE POR' && (
+                        <EtiquetaDePor
+                          produto={produto}
+                          discountType={discountType}
+                          discountValue={discountValue}
+                        />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              ))
+            ) : (
+              <div className="preview-folha" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ color: '#999' }}>Selecione produtos para visualizar a folha</p>
+              </div>
+            )
+          )}
+
         </div>
       </main>
     </div>
