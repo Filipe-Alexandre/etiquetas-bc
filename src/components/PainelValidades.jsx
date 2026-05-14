@@ -64,7 +64,7 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
     const [dia, mes, anoStr] = dataStr.split('/');
     const ano = anoStr.length === 2 ? 2000 + parseInt(anoStr) : parseInt(anoStr);
     const validade = new Date(ano, parseInt(mes) - 1, parseInt(dia));
-    
+
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -73,7 +73,7 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
 
     if (diffDias < 0) return 'vencido';
     if (diffDias <= 10) return 'alerta';
-    return 'em-dia'; 
+    return 'em-dia';
   };
 
   let produtosFiltrados = todosProdutos.filter(p =>
@@ -90,47 +90,49 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
   }
 
   return (
-    <div className="painel-overlay" style={overlayStyle}>
-      <div className="painel-modal" style={modalStyle}>
-        <div style={{ display: 'block', marginBottom: '20px' }}>
+    <div className="painel-overlay">
+      <div className="painel-modal">
+
+        <div className="painel-header">
           <h2 style={{ color: 'var(--laranja)', margin: 0 }}>Gestão de Validades</h2>
-          <br />
-          <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
-            
-            {/* TEXTO DO FILTRO ATUALIZADO */}
-            <label style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--marrom)', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', background: '#f5f5f5', padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+
+          <div className="painel-controls">
+            <label className="checkbox-alerta">
               <input
                 type="checkbox"
                 checked={mostrarApenasAlertas}
                 onChange={e => setMostrarApenasAlertas(e.target.checked)}
-                style={{ accentColor: 'var(--laranja)', width: '16px', height: '16px' }}
               />
               <i className="fa-solid fa-triangle-exclamation" style={{ color: 'var(--laranja)' }}></i> EM ALERTA
             </label>
 
             <input
               type="text"
+              className="input-busca-painel"
               placeholder="🔍 Buscar produto ou categoria..."
               value={buscaVal}
               onChange={(e) => setBuscaVal(e.target.value)}
-              style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px', fontFamily: 'var(--bold)', flexGrow: 1, minWidth: '200px', outline: 'none' }}
             />
-            <button onClick={salvarTudo} style={{ ...btnSalvarStyle, background: 'var(--laranja)', padding: '10px 20px', boxShadow: '0 4px 10px #f159214d' }}>
+
+            <button className="btn-salvar-tudo" onClick={salvarTudo}>
               💾 SALVAR TUDO
             </button>
-            <button onClick={fecharPainel} style={btnFecharStyle}>✖ FECHAR</button>
+
+            <button className="btn-fechar-painel" onClick={fecharPainel}>
+              ✖ FECHAR
+            </button>
           </div>
         </div>
 
-        <div style={{ overflowY: 'auto', maxHeight: '65vh' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <div className="table-responsive">
+          <table className="validades-table">
             <thead>
-              <tr style={{ background: '#f5f5f5', color: 'var(--marrom)', position: 'sticky', top: 0, zIndex: 1 }}>
-                <th style={thStyle}>CATEGORIA</th>
-                <th style={thStyle}>PRODUTO</th>
-                <th style={thStyle}>VALIDADE ATUAL</th>
-                <th style={thStyle}>NOVA VALIDADE</th>
-                <th style={thStyle}>AÇÃO</th>
+              <tr>
+                <th>CATEGORIA</th>
+                <th>PRODUTO</th>
+                <th>VALIDADE ATUAL</th>
+                <th>NOVA VALIDADE</th>
+                <th>AÇÃO</th>
               </tr>
             </thead>
             <tbody>
@@ -143,50 +145,57 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
                   const valorAtualEditado = validadesEditadas[prod.id] !== undefined ? validadesEditadas[prod.id] : (prod.validade || '');
                   const status = obterStatusValidade(valorAtualEditado);
 
-                  let rowStyle = { borderBottom: '1px solid #eee' };
-                  let textColor = '#444';
+                  let rowClass = 'linha-normal';
                   let tagStatus = null;
 
-                  // FUNDOS COLORIDOS NA LINHA INTEIRA E CORES DO TEXTO
                   if (status === 'vencido') {
-                    rowStyle = { backgroundColor: '#ffebee', borderBottom: '1px solid #ffcdd2' };
-                    textColor = '#c62828';
+                    rowClass = 'linha-vencido';
                     tagStatus = <span className="badge badge-vencido">VENCIDO</span>;
                   } else if (status === 'alerta') {
-                    rowStyle = { backgroundColor: '#fff8e1', borderBottom: '1px solid #ffecb3' };
-                    textColor = '#f57f17';
+                    rowClass = 'linha-alerta';
                     tagStatus = <span className="badge badge-alerta">VENCE EM BREVE</span>;
                   } else if (status === 'em-dia') {
-                    rowStyle = { backgroundColor: '#e8f5e9', borderBottom: '1px solid #c8e6c9' };
-                    textColor = '#2e7d32';
-                    tagStatus = <span className="badge badge-ok">VALIDADE CADASTRADA</span>;
+                    rowClass = 'linha-ok';
+                    tagStatus = <span className="badge badge-ok">NA VALIDADE</span>;
                   }
 
                   return (
-                    <tr key={prod.id} style={rowStyle}>
-                      <td style={{ ...tdStyle, color: textColor }}><b>{prod.categoria}</b></td>
-                      <td style={{ ...tdStyle, color: textColor }}>
-                        <div style={{ fontWeight: 'bold' }}>{prod.complemento} {prod.gramatura}</div>
+                    <tr key={prod.id} className={`validades-tr ${rowClass}`}>
+                      <td className="col-cat">
+                        <b>{prod.categoria}</b>
+                      </td>
+
+                      <td className="col-prod">
+                        <div className="prod-nome">{prod.complemento} {prod.gramatura}</div>
                         {tagStatus && <div style={{ marginTop: '6px' }}>{tagStatus}</div>}
                       </td>
-                      <td style={{ ...tdStyle, color: textColor }}><span>{prod.validade || '---'}</span></td>
-                      <td style={tdStyle}>
+
+                      <td className="col-val-atual">
+                        <span className="mobile-label">Atual:</span>
+                        <span>{prod.validade || '---'}</span>
+                      </td>
+
+                      <td className="col-nova-val">
+                        <span className="mobile-label">Nova Data:</span>
                         <input
                           type="text"
+                          className={`input-nova-data status-${status}`}
                           placeholder="DD/MM/AAAA"
                           maxLength="10"
                           value={valorAtualEditado}
                           onChange={(e) => handleChange(prod.id, e.target.value)}
-                          style={{ ...inputStyle, borderColor: status === 'nenhuma' ? '#ccc' : textColor, color: textColor }}
                         />
                       </td>
-                      <td style={tdStyle}>
+
+                      <td className="col-acao">
                         <button
+                          className="btn-salvar-ind"
                           onClick={() => salvarValidade(prod)}
                           disabled={salvandoId === prod.id || validadesEditadas[prod.id] === prod.validade}
-                          style={{ ...btnSalvarStyle, opacity: (salvandoId === prod.id || validadesEditadas[prod.id] === prod.validade) ? 0.5 : 1 }}
+                          style={{ opacity: (salvandoId === prod.id || validadesEditadas[prod.id] === prod.validade) ? 0.5 : 1 }}
                         >
-                          {salvandoId === prod.id ? 'SALVANDO...' : 'SALVAR'}
+                          <i className={`fa-solid ${salvandoId === prod.id ? 'fa-spinner fa-spin' : 'fa-floppy-disk'}`}></i>
+                          <span className="btn-texto">{salvandoId === prod.id ? ' SALVANDO...' : ' SALVAR'}</span>
                         </button>
                       </td>
                     </tr>
@@ -200,11 +209,3 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
     </div>
   );
 }
-
-const overlayStyle = { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 };
-const modalStyle = { background: '#fff', padding: '30px', borderRadius: '12px', width: '95%', maxWidth: '1100px', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' };
-const btnFecharStyle = { background: '#fee', color: 'red', border: 'none', padding: '10px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' };
-const thStyle = { padding: '12px', borderBottom: '2px solid #ddd' };
-const tdStyle = { padding: '12px', fontSize: '14px' };
-const inputStyle = { padding: '8px', border: '1px solid #ccc', borderRadius: '4px', width: '130px', fontFamily: 'var(--bold)', outline: 'none', textAlign: 'center' };
-const btnSalvarStyle = { background: '#4CAF50', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' };

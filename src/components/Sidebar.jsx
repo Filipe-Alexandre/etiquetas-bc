@@ -98,7 +98,7 @@ export function Sidebar({
                     className="btn-action btn-brown hide-print"
                     onClick={abrirPainelAdmin}
                 >
-                    <i class="fa-solid fa-pen-to-square"></i> EDITAR VALIDADES
+                    <i class="fa-solid fa-pen-to-square"></i> CONTROLE DE VALIDADES
                 </button>
             </div>
 
