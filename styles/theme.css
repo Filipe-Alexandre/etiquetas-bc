@@ -163,7 +163,7 @@ body {
     /* Encolhe para 45% visualmente */
     transform-origin: top center;
     /* Mantém presa no topo */
-    margin-bottom: -15cm;
+    margin-bottom: -15cm!important;
     /* Compensa o espaço vazio da escala */
   }
 }
