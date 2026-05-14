@@ -6,19 +6,20 @@ import { EtiquetaDePor } from './components/EtiquetaDePor';
 import { EtiquetaKit } from './components/EtiquetaKit';
 import { EtiquetaKitDePor } from './components/EtiquetaKitDePor';
 import { PainelValidades } from './components/PainelValidades';
+import { Migracao } from './components/Migracao';
 
 import { db } from './data/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-import { Migracao } from './components/Migracao';
 
 function App() {
+  // AQUI ESTAVA O PROBLEMA DA TELA BRANCA! O estado não existia.
+  const [sidebarOpen, setSidebarOpen] = useState(true); 
+  
   const [bancoDeDados, setBancoDeDados] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [showAdmin, setShowAdmin] = useState(false);
 
   const [selectedItems, setSelectedItems] = useState([]);
-
-  // O NOSSO "CARRINHO" DE KITS
   const [kitsParaImpressao, setKitsParaImpressao] = useState([]);
 
   const [labelType, setLabelType] = useState("NORMAL");
@@ -31,7 +32,7 @@ function App() {
       const querySnapshot = await getDocs(collection(db, "produtos"));
       const validadesLocais = JSON.parse(localStorage.getItem('minhas_validades')) || {};
 
-      const listaProdutos = querySnapshot.docs.map(doc => {
+const listaProdutos = querySnapshot.docs.map(doc => {
         const dadosBanco = doc.data();
         let cat = dadosBanco.categoria;
 
@@ -47,9 +48,10 @@ function App() {
           }
         }
 
-        // 2. REGRA DO TABLETE RECHEADO
-        if (nomeProduto.includes('RECHEADO')) {
-          cat = 'TABLETE RECHEADO';
+        // 2. REGRA DO TABLETE RECHEADO (Blindando o Gato Mia)
+        // Se a categoria no banco de dados JÁ É 'GATO MIA', ele ignora essa regra.
+        if (nomeProduto.includes('RECHEADO') && cat !== 'GATO MIA') {
+            cat = 'TABLETE RECHEADO';
         }
 
         return {
@@ -66,7 +68,6 @@ function App() {
         return acc;
       }, {});
 
-      // 3. ORDENAÇÃO DO SIDEBAR
       const ordemFinal = ['ACESSÓRIOS', 'ALMOFADA', 'CANECA', 'LATA', 'PELÚCIA', 'SEM CATEGORIA'];
       const categoriasOrdenadas = Object.keys(bdAgrupado).sort((a, b) => {
         const indexA = ordemFinal.indexOf(a);
@@ -121,8 +122,20 @@ function App() {
   };
 
   return (
-    <div className="layout-wrapper">
-      {/* <Migracao /> */}
+   <div className={`layout-wrapper ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+      
+      {/* BOTÃO FLUTUANTE INFERIOR DIREITO (FAB) */}
+      <button 
+        className="fab-menu hide-print" 
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        title="Alternar Menu"
+      >
+        <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
+      </button>
+
+      {/* OVERLAY PARA CLICAR FORA E FECHAR */}
+      {sidebarOpen && <div className="sidebar-overlay hide-print" onClick={() => setSidebarOpen(false)}></div>}
+      {/* <Migracao/> */}
       <Sidebar
         selectedItems={selectedItems}
         toggleItem={toggleItem}
@@ -138,6 +151,7 @@ function App() {
         setDiscountValue={setDiscountValue}
         abrirPainelAdmin={() => setShowAdmin(true)}
         bancoDeDados={bancoDeDados}
+        sidebarOpen={sidebarOpen}
       />
 
       <main className="main-content">
@@ -150,10 +164,6 @@ function App() {
         )}
 
         <div className="area-impressao">
-
-{/* ==========================================
-              VARIANTE 1: KIT NORMAL
-              ========================================== */}
           {labelType === 'KIT' && (
               <EtiquetaKit 
                 todosProdutos={todosProdutos} 
@@ -163,9 +173,6 @@ function App() {
               />
           )}
 
-          {/* ==========================================
-              VARIANTE 2: KIT DE/POR
-              ========================================== */}
           {labelType === 'KIT DE POR' && (
               <EtiquetaKitDePor
                 todosProdutos={todosProdutos}
@@ -177,9 +184,6 @@ function App() {
               />
           )}
 
-          {/* ==========================================
-              VARIANTES 3 e 4: ETIQUETAS INDIVIDUAIS (NORMAL E DE/POR)
-              ========================================== */}
           {(labelType === 'NORMAL' || labelType === 'DE POR') && (
             paginas.length > 0 ? (
               paginas.map((grupo, idx) => (
@@ -204,7 +208,6 @@ function App() {
               </div>
             )
           )}
-
         </div>
       </main>
     </div>
