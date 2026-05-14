@@ -71,7 +71,7 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
     const diffTempo = validade - hoje;
     const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
-    if (diffDias < 0) return 'vencido';
+    if (diffDias <= 0) return 'vencido';
     if (diffDias <= 10) return 'alerta';
     return 'em-dia';
   };
