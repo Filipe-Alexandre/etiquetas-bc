@@ -6,18 +6,21 @@ import { EtiquetaDePor } from './components/EtiquetaDePor';
 import { EtiquetaKit } from './components/EtiquetaKit';
 import { EtiquetaKitDePor } from './components/EtiquetaKitDePor';
 import { PainelValidades } from './components/PainelValidades';
+import { PainelPrecificacao } from './components/PainelPrecificacao';
 import { Migracao } from './components/Migracao';
 
 import { db } from './data/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 
 function App() {
-  // AQUI ESTAVA O PROBLEMA DA TELA BRANCA! O estado não existia.
   const [sidebarOpen, setSidebarOpen] = useState(true); 
+  const [showPrecos, setShowPrecos] = useState(false);
   
   const [bancoDeDados, setBancoDeDados] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [showAdmin, setShowAdmin] = useState(false);
+
+  const [showMigracao, setShowMigracao] = useState(false);
 
   const [selectedItems, setSelectedItems] = useState([]);
   const [kitsParaImpressao, setKitsParaImpressao] = useState([]);
@@ -135,7 +138,6 @@ const listaProdutos = querySnapshot.docs.map(doc => {
 
       {/* OVERLAY PARA CLICAR FORA E FECHAR */}
       {sidebarOpen && <div className="sidebar-overlay hide-print" onClick={() => setSidebarOpen(false)}></div>}
-      {/* <Migracao/> */}
       <Sidebar
         selectedItems={selectedItems}
         toggleItem={toggleItem}
@@ -149,9 +151,12 @@ const listaProdutos = querySnapshot.docs.map(doc => {
         setDiscountType={setDiscountType}
         discountValue={discountValue}
         setDiscountValue={setDiscountValue}
-        abrirPainelAdmin={() => setShowAdmin(true)}
         bancoDeDados={bancoDeDados}
         sidebarOpen={sidebarOpen}
+        abrirPainelAdmin={() => setShowAdmin(true)}
+        abrirPainelPrecos={() => setShowPrecos(true)} 
+        abrirPainelMigracao={() => setShowMigracao(true)}
+       
       />
 
       <main className="main-content">
@@ -160,6 +165,20 @@ const listaProdutos = querySnapshot.docs.map(doc => {
             todosProdutos={todosProdutos}
             fecharPainel={() => setShowAdmin(false)}
             recarregarDados={carregarDadosDoFirebase}
+          />
+        )}
+
+        {showPrecos && (
+          <PainelPrecificacao
+            fecharPainel={() => setShowPrecos(false)}
+            recarregarDados={carregarDadosDoFirebase}
+          />
+        )}
+
+        {showMigracao && (
+          <Migracao 
+            fecharPainel={() => setShowMigracao(false)} 
+            recarregarDados={carregarDadosDoFirebase} 
           />
         )}
 

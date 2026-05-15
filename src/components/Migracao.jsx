@@ -1,16 +1,14 @@
 // src/components/Migracao.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../data/firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 
 // ==========================================
-// 1. CARGA DE DADOS - ORDEM ALFABÉTICA (LIMPEZA FINAL)
+// 1. SEUS DADOS INTACTOS (CARGA DE SEGURANÇA)
 // ==========================================
-
 const categoriasData = [
   {
-    nome: "ACESSÓRIOS",
-    prefixo: "ace",
+    nome: "ACESSÓRIOS", prefixo: "ace",
     itens: [
       { comp: "APOIO DE PESCOÇO NAMORADOS", gram: "1 UN", preco: 44.90 },
       { comp: "ÁRVORE DE NATAL BC24", gram: "1 UN", preco: 24.90 },
@@ -43,8 +41,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "ALMOFADA",
-    prefixo: "alm",
+    nome: "ALMOFADA", prefixo: "alm",
     itens: [
       { comp: "DIA DAS CRIANÇAS 22", gram: "1 UN", preco: 49.90 },
       { comp: "GATO MIA", gram: "1 UN", preco: 49.90 },
@@ -52,8 +49,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "BEM ME FAZ",
-    prefixo: "bmf",
+    nome: "BEM ME FAZ", prefixo: "bmf",
     itens: [
       { comp: "BOMBOM AMENDOIM", gram: "20g", preco: 5.99 },
       { comp: "TABLETE AO LEITE", gram: "20g", preco: 6.49 },
@@ -63,8 +59,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "CANECA",
-    prefixo: "can",
+    nome: "CANECA", prefixo: "can",
     itens: [
       { comp: "AMARELA LINHA FRASE", gram: "1 UN", preco: 18.15 },
       { comp: "AZUL BIGODE", gram: "1 UN", preco: 24.90 },
@@ -130,8 +125,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "DINDA",
-    prefixo: "din",
+    nome: "DINDA", prefixo: "din",
     itens: [
       { comp: "ALPINO", gram: "90g", preco: 17.99 },
       { comp: "BOMBOM LOLLO", gram: "90g", preco: 28.99 },
@@ -144,8 +138,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "GATO MIA",
-    prefixo: "gat",
+    nome: "GATO MIA", prefixo: "gat",
     itens: [
       { comp: "AO LEITE", gram: "70g", preco: 20.99 },
       { comp: "CHOCOLATE BRANCO", gram: "70g", preco: 20.99 },
@@ -155,8 +148,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "LATA",
-    prefixo: "lat",
+    nome: "LATA", prefixo: "lat",
     itens: [
       { comp: "BALDE", gram: "1 UN", preco: 38.90 },
       { comp: "BOLA", gram: "1 UN", preco: 38.90 },
@@ -178,8 +170,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "PEGUE E LEVE",
-    prefixo: "peg",
+    nome: "PEGUE E LEVE", prefixo: "peg",
     itens: [
       { comp: "PURO CACAU", gram: "10g", preco: 2.99 },
       { comp: "AO LEITE", gram: "10g", preco: 2.99 },
@@ -192,8 +183,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "PELÚCIA",
-    prefixo: "pel",
+    nome: "PELÚCIA", prefixo: "pel",
     itens: [
       { comp: "ARCO ÍRIS", gram: "1 UN", preco: 27.90 },
       { comp: "BICHO PREGUIÇA CBC", gram: "1 UN", preco: 59.90 },
@@ -262,8 +252,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "PRESENTE",
-    prefixo: "pre",
+    nome: "PRESENTE", prefixo: "pre",
     itens: [
       { comp: "ALEGRIA", gram: "114g", preco: 49.49 },
       { comp: "AMORES", gram: "80g", preco: 39.99 },
@@ -286,8 +275,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "SEM CATEGORIA",
-    prefixo: "sca",
+    nome: "SEM CATEGORIA", prefixo: "sca",
     itens: [
       { comp: "CAIXA CARTUCHO PP", gram: "1 UN", preco: 1.10 },
       { comp: "CAIXA C/ CINTA M", gram: "1 UN", preco: 3.20 },
@@ -388,8 +376,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "TABLETE",
-    prefixo: "tab",
+    nome: "TABLETE", prefixo: "tab",
     itens: [
       { comp: "60% CACAU", gram: "20g", preco: 5.29 },
       { comp: "60% CACAU", gram: "90g", preco: 22.99 },
@@ -408,8 +395,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "TABLETE RECHEADO",
-    prefixo: "tab-rech",
+    nome: "TABLETE RECHEADO", prefixo: "tab-rech",
     itens: [
       { comp: "70% CACAU", gram: "90g", preco: 22.99 },
       { comp: "ALPINO", gram: "90g", preco: 22.99 },
@@ -425,8 +411,7 @@ const categoriasData = [
     ]
   },
   {
-    nome: "TO GO",
-    prefixo: "tgo",
+    nome: "TO GO", prefixo: "tgo",
     itens: [
       { comp: "ALFAJOR", gram: "25g", preco: 6.99 },
       { comp: "BRIGADEIRÃO", gram: "45g", preco: 10.99 },
@@ -436,97 +421,343 @@ const categoriasData = [
     ]
   },
   {
-    nome: "TRUFA",
-    prefixo: "tru",
+    nome: "TRUFA", prefixo: "tru",
     itens: [
-      { comp: "ALPINO", gram: "25g", preco: 5.49 },
-      { comp: "AO LEITE", gram: "25g", preco: 5.19 },
-      { comp: "AVELÃ", gram: "25g", preco: 5.19 },
-      { comp: "BRANCA", gram: "25g", preco: 5.19 },
-      { comp: "BRIGADEIRO", gram: "25g", preco: 5.19 },
-      { comp: "CEREJA", gram: "25g", preco: 5.19 },
-      { comp: "CHOC BRANCO PISTACHE", gram: "25g", preco: 5.19 },
-      { comp: "DUO", gram: "25g", preco: 5.19 },
-      { comp: "GATO MIA", gram: "25g", preco: 5.19 },
-      { comp: "MARACUJÁ", gram: "25g", preco: 5.19 },
-      { comp: "MORANGO", gram: "25g", preco: 5.19 },
-      { comp: "OVOMALTINE", gram: "25g", preco: 5.49 },
-      { comp: "PRESTÍGIO", gram: "25g", preco: 5.49 },
-      { comp: "PURO CACAU", gram: "25g", preco: 5.19 }
+      { comp: "ALPINO", gram: "25g", preco: 5.29 },
+      { comp: "AO LEITE", gram: "25g", preco: 4.99 },
+      { comp: "AVELÃ", gram: "25g", preco: 4.99 },
+      { comp: "BRANCA", gram: "25g", preco: 4.99 },
+      { comp: "BRIGADEIRO", gram: "25g", preco: 4.99 },
+      { comp: "CEREJA", gram: "25g", preco: 4.99 },
+      { comp: "CHOC BRANCO PISTACHE", gram: "25g", preco: 4.99 },
+      { comp: "DUO", gram: "25g", preco: 4.99 },
+      { comp: "GATO MIA", gram: "25g", preco: 4.99 },
+      { comp: "MARACUJÁ", gram: "25g", preco: 4.99 },
+      { comp: "MORANGO", gram: "25g", preco: 4.99 },
+      { comp: "OVOMALTINE", gram: "25g", preco: 5.29 },
+      { comp: "PRESTÍGIO", gram: "25g", preco: 5.29 },
+      { comp: "PURO CACAU", gram: "25g", preco: 4.99 }
     ]
   }
 ];
 
-// ==========================================
-// 2. PROCESSAMENTO E FORMATAÇÃO FINAL
-// ==========================================
-
 const todosOsProdutos = [];
-
 categoriasData.forEach(cat => {
   cat.itens.forEach((produto, index) => {
-    // Ex: gera "tab-01", "tab-02", etc.
     const idFormatado = `${cat.prefixo}-${String(index + 1).padStart(2, '0')}`;
-    
     todosOsProdutos.push({
       id: idFormatado,
       categoria: cat.nome,
       complemento: produto.comp,
       gramatura: produto.gram,
-      precoBase: produto.preco,
-      validade: ""
+      precoBase: produto.preco
     });
   });
 });
 
 // ==========================================
-// 3. O COMPONENTE VISUAL
+// 2. PAINEL DE PRECIFICAÇÃO PROTEGIDO POR SENHA
 // ==========================================
-export function Migracao() {
-  const [status, setStatus] = useState(`Pronto para subir ${todosOsProdutos.length} produtos!`);
+export function Migracao({ fecharPainel, recarregarDados }) {
+  const [senha, setSenha] = useState("");
+  const [autenticado, setAutenticado] = useState(false);
+  const [erroSenha, setErroSenha] = useState(false);
+
+  const [produtosFirebase, setProdutosFirebase] = useState([]);
+  const [precosEditados, setPrecosEditados] = useState({});
+  const [salvandoId, setSalvandoId] = useState(null);
+  const [carregando, setCarregando] = useState(false);
+  const [buscaVal, setBuscaVal] = useState("");
+
+  const [salvando, setSalvando] = useState(false);
   const [progresso, setProgresso] = useState(0);
 
-  const executarMigracao = async () => {
-    setStatus("🚀 Enviando para o Firebase... Por favor, não feche a aba!");
-    
-    try {
-      for (let i = 0; i < todosOsProdutos.length; i++) {
-        const produto = todosOsProdutos[i];
-        const docRef = doc(db, "produtos", produto.id);
-        
-        await setDoc(docRef, {
-          categoria: produto.categoria,
-          complemento: produto.complemento,
-          gramatura: produto.gramatura,
-          precoBase: produto.precoBase,
-          validade: produto.validade
-        });
-        
-        // Atualiza a barrinha visual de progresso
-        setProgresso(Math.round(((i + 1) / todosOsProdutos.length) * 100));
-      }
-      setStatus(`SUCESSO! ✅ Todos os ${todosOsProdutos.length} produtos estão na nuvem!`);
-    } catch (error) {
-      console.error("Erro no envio:", error);
-      setStatus("ERRO! ❌ Olhe o console (F12) para detalhes.");
+  // A SENHA PARA DESBLOQUEAR A EDIÇÃO (Altere quando precisar)
+  const SENHA_MESTRE = "123456";
+
+  const verificarSenha = (e) => {
+    e.preventDefault();
+    if (senha === SENHA_MESTRE) {
+      setAutenticado(true);
+      carregarProdutosDoBanco();
+    } else {
+      setErroSenha(true);
+      setSenha("");
     }
   };
 
-  return (
-    <div style={{ padding: '40px', background: '#fff', border: '2px dashed var(--laranja)', margin: '20px', borderRadius: '10px', textAlign: 'center', width: '90%', zIndex: 9999 }}>
-      <h2 style={{ color: 'var(--marrom)', marginBottom: '10px' }}>Subir Carga Final (Catálogo Limpo)</h2>
-      <p style={{ fontWeight: 'bold', color: '#666', marginBottom: '20px' }}>{status}</p>
-      
-      <div style={{ width: '100%', backgroundColor: '#eee', borderRadius: '5px', height: '20px', marginBottom: '20px' }}>
-        <div style={{ width: `${progresso}%`, backgroundColor: 'var(--laranja)', height: '100%', borderRadius: '5px', transition: 'width 0.2s' }}></div>
-      </div>
+  const fechar = () => {
+    if (fecharPainel) fecharPainel();
+  };
 
-      <button 
-        onClick={executarMigracao}
-        style={{ background: 'var(--laranja)', color: '#fff', padding: '15px 30px', fontSize: '18px', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-      >
-        🚀 EXECUTAR MIGRAÇÃO COMPLETA
-      </button>
+  const carregarProdutosDoBanco = async () => {
+    setCarregando(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "produtos"));
+      const lista = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      lista.sort((a, b) => {
+        if (a.categoria < b.categoria) return -1;
+        if (a.categoria > b.categoria) return 1;
+        return (a.complemento || "").localeCompare(b.complemento || "");
+      });
+      
+      setProdutosFirebase(lista);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      alert("Erro ao conectar com o banco de dados.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const handleChangePreco = (id, valorStr) => {
+    let valorFormatado = valorStr.replace(/[^0-9.,]/g, '');
+    setPrecosEditados(prev => ({ ...prev, [id]: valorFormatado }));
+  };
+
+  // SALVAR INDIVIDUAL
+  const salvarPreco = async (produto) => {
+    const valorEditado = precosEditados[produto.id];
+    if (!valorEditado) return;
+
+    const novoPreco = parseFloat(valorEditado.replace(',', '.'));
+    if (isNaN(novoPreco) || novoPreco === produto.precoBase) return;
+
+    setSalvandoId(produto.id);
+    try {
+      const docRef = doc(db, "produtos", produto.id);
+      await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
+      
+      alert(`Preço atualizado com sucesso!`);
+      
+      setProdutosFirebase(prev => 
+        prev.map(p => p.id === produto.id ? { ...p, precoBase: novoPreco } : p)
+      );
+      
+      setPrecosEditados(prev => {
+        const newState = { ...prev };
+        delete newState[produto.id];
+        return newState;
+      });
+
+      if (recarregarDados) recarregarDados();
+      fechar();
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Falha ao salvar o preço.");
+    } finally {
+      setSalvandoId(null);
+    }
+  };
+
+  // SALVAR TUDO (LOTE)
+  const salvarTudo = async () => {
+    const idsEditados = Object.keys(precosEditados).filter(id => {
+        const prodOriginal = produtosFirebase.find(p => p.id === id);
+        if (!prodOriginal) return false;
+        
+        const valorNovo = parseFloat(precosEditados[id].replace(',', '.'));
+        return !isNaN(valorNovo) && valorNovo !== prodOriginal.precoBase;
+    });
+
+    if (idsEditados.length === 0) {
+      alert("Nenhum preço foi alterado para salvar.");
+      return;
+    }
+
+    if (!window.confirm(`Atualizar o preço de ${idsEditados.length} produto(s)?`)) return;
+
+    setSalvando(true);
+    setProgresso(0);
+
+    try {
+      for (let i = 0; i < idsEditados.length; i++) {
+        const id = idsEditados[i];
+        const novoPreco = parseFloat(precosEditados[id].replace(',', '.'));
+        const docRef = doc(db, "produtos", id);
+        
+        await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
+        setProgresso(Math.round(((i + 1) / idsEditados.length) * 100));
+      }
+      
+      alert("Todos os preços foram atualizados!");
+      
+      // Atualiza os preços na tabela visual sem precisar fazer novo getDocs
+      setProdutosFirebase(prev => 
+        prev.map(p => {
+          if (precosEditados[p.id]) {
+             return { ...p, precoBase: parseFloat(precosEditados[p.id].replace(',', '.')) };
+          }
+          return p;
+        })
+      );
+      
+      setPrecosEditados({});
+      if (recarregarDados) recarregarDados();
+      fechar();
+
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar os preços no banco.");
+    } finally {
+      setSalvando(false);
+      setProgresso(0);
+    }
+  };
+
+
+  // TELA 1: SENHA (BLOQUEIO)
+  // Repare nos onClick para fechar clicando fora da modal
+  if (!autenticado) {
+    return (
+      <div className="painel-overlay" onClick={fechar}>
+        <div className="painel-modal modal-senha" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '350px', height: 'auto', minHeight: 'auto', position: 'relative' }}>
+          
+          <button className="btn-fechar-absoluto" onClick={fechar}>✖</button>
+          
+          <h2 style={{ color: 'var(--marrom)', textAlign: 'center', marginBottom: '20px' }}>
+            <i className="fa-solid fa-lock"></i> Acesso Restrito
+          </h2>
+          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px', fontSize: '12px' }}>
+            Digite a senha para gerenciar os preços do banco de dados.
+          </p>
+          
+          <form onSubmit={verificarSenha} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <input
+              type="password"
+              placeholder="Senha de Acesso"
+              value={senha}
+              onChange={(e) => { setSenha(e.target.value); setErroSenha(false); }}
+              autoFocus
+              style={{ padding: '12px', borderRadius: '6px', border: `2px solid ${erroSenha ? 'red' : 'var(--laranja)'}`, fontFamily: 'var(--bold)', textAlign: 'center', fontSize: '18px', outline: 'none' }}
+            />
+            {erroSenha && <span style={{ color: 'red', fontSize: '11px', textAlign: 'center' }}>Senha incorreta!</span>}
+            
+            <button type="submit" style={{ background: 'var(--laranja)', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--bold)' }}>
+              DESBLOQUEAR
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // TELA 2: EDIÇÃO DE PREÇOS (IGUAL O PAINEL DE VALIDADES)
+  const produtosFiltrados = produtosFirebase.filter(p =>
+    p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) ||
+    p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
+  );
+
+  return (
+    <div className="painel-overlay" onClick={fechar}>
+      <div className="painel-modal" onClick={(e) => e.stopPropagation()}>
+        
+        <div className="painel-header">
+          <h2 style={{ color: 'var(--laranja)', margin: 0 }}>
+             <i className="fa-solid fa-tags"></i> Editor de Preços
+          </h2>
+          
+          <div className="painel-controls">
+            <input
+              type="text"
+              className="input-busca-painel"
+              placeholder="🔍 Buscar produto..."
+              value={buscaVal}
+              onChange={(e) => setBuscaVal(e.target.value)}
+            />
+            
+            {/* NOVO BOTÃO SALVAR TUDO (Igual do Painel de Validades) */}
+            <button 
+                className="btn-salvar-tudo" 
+                onClick={salvarTudo} 
+                disabled={salvando || carregando}
+            >
+              {salvando ? `⏳ SALVANDO... ${progresso}%` : '💾 SALVAR TUDO'}
+            </button>
+
+            <button className="btn-fechar-painel" onClick={fechar} disabled={salvando}>
+              ✖ FECHAR
+            </button>
+          </div>
+        </div>
+
+        <div className="table-responsive">
+          {carregando ? (
+            <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
+               <h3><i className="fa-solid fa-spinner fa-spin"></i> Carregando preços do servidor...</h3>
+            </div>
+          ) : (
+            <table className="validades-table">
+              <thead>
+                <tr>
+                  <th>CATEGORIA</th>
+                  <th>PRODUTO</th>
+                  <th style={{ textAlign: 'center' }}>PREÇO ATUAL</th>
+                  <th style={{ textAlign: 'center' }}>NOVO PREÇO (R$)</th>
+                  <th>AÇÃO</th>
+                </tr>
+              </thead>
+              <tbody>
+                {produtosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Nenhum produto encontrado.</td>
+                  </tr>
+                ) : (
+                  produtosFiltrados.map(prod => {
+                    const valorEditado = precosEditados[prod.id];
+                    const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
+                    
+                    const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
+
+                    return (
+                      <tr key={prod.id} className="validades-tr linha-normal">
+                        <td className="col-cat">
+                          <b>{prod.categoria}</b>
+                        </td>
+                        
+                        <td className="col-prod">
+                          <div className="prod-nome">{prod.complemento} {prod.gramatura}</div>
+                          <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
+                        </td>
+                        
+                        <td className="col-val-atual" style={{ textAlign: 'center' }}>
+                          <span className="mobile-label">Preço Atual:</span>
+                          <span style={{ fontWeight: '900', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
+                        </td>
+                        
+                        <td className="col-nova-val" style={{ textAlign: 'center' }}>
+                          <span className="mobile-label">Novo Preço:</span>
+                          <input
+                            type="text"
+                            className="input-nova-data"
+                            placeholder={precoAtualFormat}
+                            value={valorEditado !== undefined ? valorEditado : ''}
+                            onChange={(e) => handleChangePreco(prod.id, e.target.value)}
+                            style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444' }}
+                          />
+                        </td>
+                        
+                        <td className="col-acao">
+                          <button
+                            className="btn-salvar-ind"
+                            onClick={() => salvarPreco(prod)}
+                            disabled={!temAlteracao || salvandoId === prod.id}
+                            style={{ opacity: (!temAlteracao || salvandoId === prod.id) ? 0.5 : 1 }}
+                          >
+                            <i className={`fa-solid ${salvandoId === prod.id ? 'fa-spinner fa-spin' : 'fa-floppy-disk'}`}></i>
+                            <span className="btn-texto">{salvandoId === prod.id ? ' SALVANDO...' : ' SALVAR'}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

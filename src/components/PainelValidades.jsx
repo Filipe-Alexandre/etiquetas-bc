@@ -90,8 +90,8 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
   }
 
   return (
-    <div className="painel-overlay">
-      <div className="painel-modal">
+    <div className="painel-overlay" onClick={fecharPainel}>
+      <div className="painel-modal" onClick={(e) => e.stopPropagation()}>
 
         <div className="painel-header">
           <h2 style={{ color: 'var(--laranja)', margin: 0 }}>Gestão de Validades</h2>

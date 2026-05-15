@@ -16,11 +16,10 @@ export function Sidebar({
     setDiscountType,
     discountValue,
     setDiscountValue,
-    abrirPainelAdmin
+    abrirPainelAdmin,
+    abrirPainelMigracao
 }) {
     const [openCategory, setOpenCategory] = useState(null);
-
-    // Garante que não vai dar erro se o banco de dados ainda estiver carregando
     const categorias = bancoDeDados ? Object.keys(bancoDeDados) : [];
 
     return (
@@ -30,7 +29,7 @@ export function Sidebar({
                 <img src={logo1} alt="Logo" className="logo" />
             </div>
             <div className="dev-felps">
-                Desenvolvido por <a href="https://www.linkedin.com/in/filipe-alexandre/" target="_blank" rel="noopener noreferrer"> <i class="fa-solid fa-terminal"></i> Filipe Alexandre</a>
+                Desenvolvido por <a href="https://www.linkedin.com/in/filipe-alexandre/" target="_blank" rel="noopener noreferrer"> <i className="fa-solid fa-terminal"></i> Filipe Alexandre</a>
             </div>
 
             <div className="label-type-selector">
@@ -50,7 +49,7 @@ export function Sidebar({
                 </div>
             </div>
 
-            {/* --- BLOCO DE DESCONTO (Exibido apenas em etiquetas DE POR) --- */}
+            {/* --- BLOCO DE DESCONTO --- */}
             {(labelType === 'DE POR' || labelType === 'KIT DE POR') && (
                 <div className="discount-config" style={{ marginBottom: '25px' }}>
                     <h3 className="section-title">APLICAR DESCONTO</h3>
@@ -98,10 +97,9 @@ export function Sidebar({
                     className="btn-action btn-brown hide-print"
                     onClick={abrirPainelAdmin}
                 >
-                    <i class="fa-solid fa-pen-to-square"></i> CONTROLE DE VALIDADES
+                    <i className="fa-solid fa-pen-to-square"></i> CONTROLE DE VALIDADES
                 </button>
             </div>
-
 
             {/* --- ACORDION DE PRODUTOS --- */}
             <nav className="accordion-menu">
@@ -130,6 +128,22 @@ export function Sidebar({
                         )}
                     </div>
                 ))}
+                
+                {/* BOTÃO DA MIGRAÇÃO */}
+                <button 
+                    className="btn-action hide-print" 
+                    onClick={abrirPainelMigracao}
+                    style={{ 
+                        marginTop: '30px', 
+                        background: 'transparent', 
+                        border: '1px dashed #ccc', 
+                        color: '#999', 
+                        fontSize: '11px',
+                        padding: '10px'
+                    }}
+                >
+                    <i className="fa-solid fa-server"></i> ATUALIZAR CATÁLOGO E PREÇOS
+                </button>
             </nav>
         </aside>
     );
