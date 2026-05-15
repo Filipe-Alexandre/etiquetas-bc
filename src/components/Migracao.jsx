@@ -1,10 +1,10 @@
 // src/components/Migracao.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { db } from '../data/firebaseConfig';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 // ==========================================
-// 1. SEUS DADOS INTACTOS (CARGA DE SEGURANÇA)
+// 1. CARGA DE SEGURANÇA (SEUS DADOS ESTÁTICOS)
 // ==========================================
 const categoriasData = [
   {
@@ -456,24 +456,31 @@ categoriasData.forEach(cat => {
 });
 
 // ==========================================
-// 2. PAINEL DE PRECIFICAÇÃO PROTEGIDO POR SENHA
+// 2. PAINEL MESTRE (MIGRAÇÃO + EDIÇÃO + EXCLUSÃO)
 // ==========================================
 export function Migracao({ fecharPainel, recarregarDados }) {
+  // Estados da Senha
   const [senha, setSenha] = useState("");
   const [autenticado, setAutenticado] = useState(false);
   const [erroSenha, setErroSenha] = useState(false);
 
+  // Estados da Tabela de Preços
   const [produtosFirebase, setProdutosFirebase] = useState([]);
   const [precosEditados, setPrecosEditados] = useState({});
   const [salvandoId, setSalvandoId] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [buscaVal, setBuscaVal] = useState("");
 
+  // Estados de Operação em Lote
   const [salvando, setSalvando] = useState(false);
   const [progresso, setProgresso] = useState(0);
 
-  // A SENHA PARA DESBLOQUEAR A EDIÇÃO (Altere quando precisar)
+  // A SENHA PARA DESBLOQUEAR A EDIÇÃO
   const SENHA_MESTRE = "123456";
+
+  const fechar = () => {
+    if (fecharPainel) fecharPainel();
+  };
 
   const verificarSenha = (e) => {
     e.preventDefault();
@@ -486,22 +493,19 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  const fechar = () => {
-    if (fecharPainel) fecharPainel();
-  };
-
+  // BUSCA OS DADOS DA NUVEM PARA A TABELA
   const carregarProdutosDoBanco = async () => {
     setCarregando(true);
     try {
       const querySnapshot = await getDocs(collection(db, "produtos"));
       const lista = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
+
       lista.sort((a, b) => {
         if (a.categoria < b.categoria) return -1;
         if (a.categoria > b.categoria) return 1;
         return (a.complemento || "").localeCompare(b.complemento || "");
       });
-      
+
       setProdutosFirebase(lista);
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
@@ -510,6 +514,8 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       setCarregando(false);
     }
   };
+
+  // ===================== AÇÕES DA TABELA =====================
 
   const handleChangePreco = (id, valorStr) => {
     let valorFormatado = valorStr.replace(/[^0-9.,]/g, '');
@@ -528,13 +534,13 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     try {
       const docRef = doc(db, "produtos", produto.id);
       await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
-      
+
       alert(`Preço atualizado com sucesso!`);
-      
-      setProdutosFirebase(prev => 
+
+      setProdutosFirebase(prev =>
         prev.map(p => p.id === produto.id ? { ...p, precoBase: novoPreco } : p)
       );
-      
+
       setPrecosEditados(prev => {
         const newState = { ...prev };
         delete newState[produto.id];
@@ -551,14 +557,31 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // SALVAR TUDO (LOTE)
+  // EXCLUIR INDIVIDUAL
+  const excluirProduto = async (produto) => {
+    if (!window.confirm(`ATENÇÃO: Deseja EXCLUIR DEFINITIVAMENTE o produto "${produto.complemento}" do banco de dados?`)) return;
+
+    try {
+      await deleteDoc(doc(db, "produtos", produto.id));
+      alert("Produto excluído com sucesso!");
+
+      setProdutosFirebase(prev => prev.filter(p => p.id !== produto.id));
+
+      if (recarregarDados) recarregarDados();
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      alert("Falha ao excluir o produto.");
+    }
+  };
+
+  // SALVAR TUDO DA TABELA
   const salvarTudo = async () => {
     const idsEditados = Object.keys(precosEditados).filter(id => {
-        const prodOriginal = produtosFirebase.find(p => p.id === id);
-        if (!prodOriginal) return false;
-        
-        const valorNovo = parseFloat(precosEditados[id].replace(',', '.'));
-        return !isNaN(valorNovo) && valorNovo !== prodOriginal.precoBase;
+      const prodOriginal = produtosFirebase.find(p => p.id === id);
+      if (!prodOriginal) return false;
+
+      const valorNovo = parseFloat(precosEditados[id].replace(',', '.'));
+      return !isNaN(valorNovo) && valorNovo !== prodOriginal.precoBase;
     });
 
     if (idsEditados.length === 0) {
@@ -576,27 +599,25 @@ export function Migracao({ fecharPainel, recarregarDados }) {
         const id = idsEditados[i];
         const novoPreco = parseFloat(precosEditados[id].replace(',', '.'));
         const docRef = doc(db, "produtos", id);
-        
+
         await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
         setProgresso(Math.round(((i + 1) / idsEditados.length) * 100));
       }
-      
+
       alert("Todos os preços foram atualizados!");
-      
-      // Atualiza os preços na tabela visual sem precisar fazer novo getDocs
-      setProdutosFirebase(prev => 
+
+      setProdutosFirebase(prev =>
         prev.map(p => {
           if (precosEditados[p.id]) {
-             return { ...p, precoBase: parseFloat(precosEditados[p.id].replace(',', '.')) };
+            return { ...p, precoBase: parseFloat(precosEditados[p.id].replace(',', '.')) };
           }
           return p;
         })
       );
-      
+
       setPrecosEditados({});
       if (recarregarDados) recarregarDados();
       fechar();
-
     } catch (error) {
       console.error(error);
       alert("Erro ao atualizar os preços no banco.");
@@ -606,23 +627,57 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
+  // BOTÃO MÁGICO: SINCRONIZAR A CARGA DE DADOS DO CÓDIGO
+  const executarSincronizacaoDaCarga = async () => {
+    if (!window.confirm(`Isso enviará novos itens e preços do código para a nuvem (${todosOsProdutos.length} itens). Deseja continuar?`)) return;
 
-  // TELA 1: SENHA (BLOQUEIO)
-  // Repare nos onClick para fechar clicando fora da modal
+    setSalvando(true);
+    setProgresso(0);
+    
+    try {
+      for (let i = 0; i < todosOsProdutos.length; i++) {
+        const produto = todosOsProdutos[i];
+        const docRef = doc(db, "produtos", produto.id);
+        
+        await setDoc(docRef, {
+          categoria: produto.categoria,
+          complemento: produto.complemento,
+          gramatura: produto.gramatura,
+          precoBase: produto.precoBase
+        }, { merge: true });
+        
+        setProgresso(Math.round(((i + 1) / todosOsProdutos.length) * 100));
+      }
+      
+      alert("Catálogo sincronizado com sucesso!");
+      if (recarregarDados) recarregarDados();
+      carregarProdutosDoBanco(); // Atualiza a tabela na tela
+    } catch (error) {
+      console.error("Erro no envio:", error);
+      alert("Erro ao enviar a carga.");
+    } finally {
+      setSalvando(false);
+      setProgresso(0);
+    }
+  };
+
+  // ===================== RENDERS =====================
+
+  // TELA 1: SENHA
   if (!autenticado) {
     return (
       <div className="painel-overlay" onClick={fechar}>
         <div className="painel-modal modal-senha" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '350px', height: 'auto', minHeight: 'auto', position: 'relative' }}>
-          
+
           <button className="btn-fechar-absoluto" onClick={fechar}>✖</button>
-          
+
           <h2 style={{ color: 'var(--marrom)', textAlign: 'center', marginBottom: '20px' }}>
             <i className="fa-solid fa-lock"></i> Acesso Restrito
           </h2>
           <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px', fontSize: '12px' }}>
             Digite a senha para gerenciar os preços do banco de dados.
           </p>
-          
+
           <form onSubmit={verificarSenha} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <input
               type="password"
@@ -633,7 +688,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
               style={{ padding: '12px', borderRadius: '6px', border: `2px solid ${erroSenha ? 'red' : 'var(--laranja)'}`, fontFamily: 'var(--bold)', textAlign: 'center', fontSize: '18px', outline: 'none' }}
             />
             {erroSenha && <span style={{ color: 'red', fontSize: '11px', textAlign: 'center' }}>Senha incorreta!</span>}
-            
+
             <button type="submit" style={{ background: 'var(--laranja)', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--bold)' }}>
               DESBLOQUEAR
             </button>
@@ -643,7 +698,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     );
   }
 
-  // TELA 2: EDIÇÃO DE PREÇOS (IGUAL O PAINEL DE VALIDADES)
+  // TELA 2: GERENCIADOR COMPLETO
   const produtosFiltrados = produtosFirebase.filter(p =>
     p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) ||
     p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
@@ -652,12 +707,23 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   return (
     <div className="painel-overlay" onClick={fechar}>
       <div className="painel-modal" onClick={(e) => e.stopPropagation()}>
-        
+
+        {/* HEADER */}
         <div className="painel-header">
-          <h2 style={{ color: 'var(--laranja)', margin: 0 }}>
-             <i className="fa-solid fa-tags"></i> Editor de Preços
-          </h2>
-          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <h2 style={{ color: 'var(--laranja)', margin: 0 }}>
+              <i className="fa-solid fa-server"></i> Gerenciador de Catálogo
+            </h2>
+            {/* BOTÃO DA CARGA DE DADOS ESTÁ AQUI EM CIMA AGORA */}
+            <button 
+                onClick={executarSincronizacaoDaCarga} 
+                disabled={salvando || carregando}
+                style={{ background: 'none', border: 'none', color: '#999', fontSize: '10px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+            >
+              <i className="fa-solid fa-cloud-arrow-up"></i> ENVIAR CARGA PADRÃO DO CÓDIGO
+            </button>
+          </div>
+
           <div className="painel-controls">
             <input
               type="text"
@@ -666,12 +732,11 @@ export function Migracao({ fecharPainel, recarregarDados }) {
               value={buscaVal}
               onChange={(e) => setBuscaVal(e.target.value)}
             />
-            
-            {/* NOVO BOTÃO SALVAR TUDO (Igual do Painel de Validades) */}
-            <button 
-                className="btn-salvar-tudo" 
-                onClick={salvarTudo} 
-                disabled={salvando || carregando}
+
+            <button
+              className="btn-salvar-tudo"
+              onClick={salvarTudo}
+              disabled={salvando || carregando}
             >
               {salvando ? `⏳ SALVANDO... ${progresso}%` : '💾 SALVAR TUDO'}
             </button>
@@ -682,10 +747,11 @@ export function Migracao({ fecharPainel, recarregarDados }) {
           </div>
         </div>
 
+        {/* TABELA DE DADOS DO FIREBASE */}
         <div className="table-responsive">
           {carregando ? (
             <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
-               <h3><i className="fa-solid fa-spinner fa-spin"></i> Carregando preços do servidor...</h3>
+              <h3><i className="fa-solid fa-spinner fa-spin"></i> Carregando preços do servidor...</h3>
             </div>
           ) : (
             <table className="validades-table">
@@ -695,7 +761,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                   <th>PRODUTO</th>
                   <th style={{ textAlign: 'center' }}>PREÇO ATUAL</th>
                   <th style={{ textAlign: 'center' }}>NOVO PREÇO (R$)</th>
-                  <th>AÇÃO</th>
+                  <th style={{ textAlign: 'center' }}>AÇÕES</th>
                 </tr>
               </thead>
               <tbody>
@@ -707,7 +773,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                   produtosFiltrados.map(prod => {
                     const valorEditado = precosEditados[prod.id];
                     const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
-                    
+
                     const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
 
                     return (
@@ -715,17 +781,17 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                         <td className="col-cat">
                           <b>{prod.categoria}</b>
                         </td>
-                        
+
                         <td className="col-prod">
                           <div className="prod-nome">{prod.complemento} {prod.gramatura}</div>
                           <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
                         </td>
-                        
+
                         <td className="col-val-atual" style={{ textAlign: 'center' }}>
                           <span className="mobile-label">Preço Atual:</span>
                           <span style={{ fontWeight: '900', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
                         </td>
-                        
+
                         <td className="col-nova-val" style={{ textAlign: 'center' }}>
                           <span className="mobile-label">Novo Preço:</span>
                           <input
@@ -737,16 +803,29 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                             style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444' }}
                           />
                         </td>
-                        
-                        <td className="col-acao">
+
+                        <td className="col-acao" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                           <button
                             className="btn-salvar-ind"
                             onClick={() => salvarPreco(prod)}
                             disabled={!temAlteracao || salvandoId === prod.id}
                             style={{ opacity: (!temAlteracao || salvandoId === prod.id) ? 0.5 : 1 }}
+                            title="Salvar Novo Preço"
                           >
                             <i className={`fa-solid ${salvandoId === prod.id ? 'fa-spinner fa-spin' : 'fa-floppy-disk'}`}></i>
                             <span className="btn-texto">{salvandoId === prod.id ? ' SALVANDO...' : ' SALVAR'}</span>
+                          </button>
+
+                          {/* BOTÃO DE EXCLUIR */}
+                          <button
+                            onClick={() => excluirProduto(prod)}
+                            style={{
+                              background: '#fee', color: 'red', border: 'none',
+                              padding: '8px 12px', borderRadius: '4px', cursor: 'pointer'
+                            }}
+                            title="Excluir Produto"
+                          >
+                            <i className="fa-solid fa-trash-can"></i>
                           </button>
                         </td>
                       </tr>
