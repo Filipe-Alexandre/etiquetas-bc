@@ -271,7 +271,8 @@ const categoriasData = [
       { comp: "ROSAS", gram: "80g", preco: 39.99 },
       { comp: "SELEÇÕES EMB", gram: "250g", preco: 69.99 },
       { comp: "SENSAÇÃO", gram: "126g", preco: 53.99 },
-      { comp: "SUPREMO", gram: "200g", preco: 60.49 }
+      { comp: "SUPREMO", gram: "200g", preco: 60.49 },
+      { comp: "HARMONIA", gram: "140g", preco: 59.99 }
     ]
   },
   {
