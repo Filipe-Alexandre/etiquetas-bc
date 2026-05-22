@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { EtiquetaNormal } from './components/EtiquetaNormal';
-import { EtiquetaDePor } from './components/EtiquetaDePor';
-import { EtiquetaClube } from './components/EtiquetaClube'; // Etiqueta Clube mantida
+import { EtiquetaDePor } from './components/EtiquetaDePorAmarela';
+import { EtiquetaClube } from './components/EtiquetaDePorBranca';
 import { EtiquetaKit } from './components/EtiquetaKit';
 import { EtiquetaKitDePor } from './components/EtiquetaKitDePor';
 import { PainelValidades } from './components/PainelValidades';
@@ -178,15 +178,15 @@ function App() {
               <EtiquetaKitDePor todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} discountType={discountType} discountValue={discountValue} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
           )}
 
-          {(labelType === 'NORMAL' || labelType === 'DE POR' || labelType === 'CLUBE') && (
+          {(labelType === 'NORMAL' || labelType === 'DE POR - AMARELA' || labelType === 'DE POR - BRANCA' || labelType === 'CLUBE') && (
             paginas.length > 0 ? (
               paginas.map((grupo, idx) => (
                 <div key={idx} className="preview-folha">
                   {grupo.map(produto => (
                     <React.Fragment key={produto.id}>
                       {labelType === 'NORMAL' && <EtiquetaNormal produto={produto} />}
-                      {labelType === 'DE POR' && <EtiquetaDePor produto={produto} discountType={discountType} discountValue={discountValue} />}
-                      {labelType === 'CLUBE' && <EtiquetaClube produto={produto} discountType={discountType} discountValue={discountValue} />}
+                      {labelType === 'DE POR - AMARELA' && <EtiquetaDePor produto={produto} discountType={discountType} discountValue={discountValue} />}
+                      {labelType === 'DE POR - BRANCA' && <EtiquetaClube produto={produto} discountType={discountType} discountValue={discountValue} />}
                     </React.Fragment>
                   ))}
                 </div>

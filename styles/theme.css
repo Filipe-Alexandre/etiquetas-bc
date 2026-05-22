@@ -406,7 +406,7 @@ body {
   z-index: 2;
 }
 
-.dp-cat-gram {
+.dp-cat-gram, .clube-cat {
   font-family: var(--bold);
   letter-spacing: -0.2px;
   font-size: 10pt;
@@ -414,7 +414,7 @@ body {
   color: var(--laranja);
 }
 
-.dp-sabor {
+.dp-sabor, .clube-name {
   font-family: var(--normal);
   font-stretch: condensed;
   font-size: 12pt;
@@ -1561,28 +1561,6 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 2;
-}
-
-.clube-cat {
-  color: var(--laranja);
-  font-size: 8pt;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 2px;
-}
-
-.clube-name {
-  color: var(--marrom);
-  font-size: 14pt;
-  font-weight: 800;
-  font-stretch: condensed;
-  line-height: 0.95;
-  display: -webkit-box;
-  line-clamp: 3;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  letter-spacing: -0.5px;
 }
 
 /* BOX PREÇO ANTIGO */

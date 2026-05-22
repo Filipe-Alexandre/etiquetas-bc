@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import logo2 from '../assets/logo2.svg';
 import placa from '../assets/placa.svg';
-import { EtiquetaDePor } from './EtiquetaDePor';
+import { EtiquetaDePor } from './EtiquetaDePorAmarela';
 import Barcode from 'react-barcode';
 
 export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, discountValue, kitsParaImpressao, setKitsParaImpressao }) {
