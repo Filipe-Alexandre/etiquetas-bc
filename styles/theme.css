@@ -1544,146 +1544,157 @@ body {
    10. ETIQUETA "CLUBE" (FONTES ADOBE E CURVA DA FOTO)
 ========================================================= */
 .etiqueta.clube {
-  position: relative; 
-  width: 8cm; 
-  height: 4cm; 
-  background: var(--branco); 
-  border: 1px dashed #ccc; 
-  overflow: hidden; 
-  display: flex; 
+  position: relative;
+  width: 8cm;
+  height: 4cm;
+  background: var(--branco);
+  border: 1px dashed #ccc;
+  overflow: hidden;
+  display: flex;
   text-transform: uppercase;
 }
 
 /* LADO ESQUERDO (BRANCO) */
-.clube-left { 
+.clube-left {
   width: 45%;
-  padding: 12px 0px 12px 12px; 
-  display: flex; 
-  flex-direction: column; 
-  z-index: 2; 
+  padding: 12px 0px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
 }
 
-.clube-cat { 
-  color: var(--laranja); 
-  font-size: 8pt; 
-  font-weight: 900; 
-  line-height: 1; 
+.clube-cat {
+  color: var(--laranja);
+  font-size: 8pt;
+  font-weight: 900;
+  line-height: 1;
   margin-bottom: 2px;
 }
 
-.clube-name { 
-  color: var(--marrom); 
-  font-size: 14pt; 
-  font-weight: 800; 
-  font-stretch: condensed; 
-  line-height: 0.95; 
-  display: -webkit-box; 
+.clube-name {
+  color: var(--marrom);
+  font-size: 14pt;
+  font-weight: 800;
+  font-stretch: condensed;
+  line-height: 0.95;
+  display: -webkit-box;
   line-clamp: 3;
-  -webkit-line-clamp: 3; 
-  -webkit-box-orient: vertical; 
-  overflow: hidden; 
-  letter-spacing: -0.5px; 
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  letter-spacing: -0.5px;
 }
 
 /* BOX PREÇO ANTIGO */
-.clube-old-price-box { 
-  margin-top: auto; 
-  display: flex; 
-  align-items: center; 
-  gap: 6px; 
-}
-
-.clube-old-label { 
-  font-size: 6pt; 
-  color: var(--laranja); 
-  font-weight: 900; 
-  line-height: 1.1; 
-}
-
-.clube-old-value { 
-  font-size: 16pt; 
-  color: var(--marrom); 
-  font-weight: 900; 
-  letter-spacing: -1px; 
-  line-height: 0.8; 
-  text-decoration: line-through; 
+.clube-old-price-box {
+  margin-top: auto;
   display: flex;
-  align-items: flex-start; 
+  flex-direction: column;
+  align-items: left;
+  gap: 6px;
+}
+
+.clube-old-label {
+  font-size: 6pt;
+  color: var(--laranja);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.clube-old-value {
+  font-size: 16pt;
+  color: var(--marrom);
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 0.8;
+  text-decoration: line-through;
+  display: flex;
+  align-items: flex-start;
 }
 
 .clube-old-rs {
   font-size: 8pt;
   margin-right: 2px;
-  margin-top: 1px; 
+  margin-top: 1px;
   font-weight: 900;
 }
 
 .clube-right {
-  position: absolute; 
-  top: 0; 
-  right: 0; 
-  bottom: 0; 
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
   width: 59%;
-  display: flex; 
-  flex-direction: column; 
-  justify-content: space-between; 
-  align-items: flex-end; 
-  padding: 12px 12px 10px 15px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 12px 12px 10px 15px;
   z-index: 1;
 }
 
 .clube-bg-curve {
-  position: absolute; 
-  top: 0; 
-  right: 0; 
-  bottom: 0; 
-  left: 0;
-  background-color: var(--laranja);
-  
-  clip-path: polygon(25% 0, 100% 0, 100% 100%, 0% 100%);
-  border-top-left-radius: 150px 250px;
-  
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
   z-index: -1;
 }
 
-.clube-badge { 
-  display: flex; 
-  flex-direction: column; 
-  align-items: flex-end; 
+.clube-bg-curve::before {
+  content: "";
+  position: absolute;
+
+  top: -30px;
+  left: 12%;
+
+  width: 120%;
+  height: 140%;
+
+  background: var(--laranja);
+
+  border-top-left-radius: 120px;
+
+  transform: rotate(12deg);
 }
 
-.clube-exclusive { 
-  font-size: 6pt; 
-  color: var(--branco); 
-  font-weight: 900; 
-  margin-bottom: 2px; 
+.clube-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.clube-logo-svg { 
-  width: 80px; 
-  height: auto; 
-  object-fit: contain; 
+.clube-exclusive {
+  font-size: 6pt;
+  color: var(--branco);
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+
+.clube-logo-svg {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
 }
 
 /* BOX PREÇO NOVO */
-.clube-new-price-box { 
-  display: flex; 
-  align-items: flex-start; 
-  color: var(--branco); 
+.clube-new-price-box {
+  display: flex;
+  align-items: flex-start;
+  color: var(--branco);
 }
 
-.clube-new-rs { 
-  font-size: 10pt; 
-  font-weight: 900; 
-  margin-right: 2px; 
-  margin-top: 4px; 
+.clube-new-rs {
+  font-size: 10pt;
+  font-weight: 900;
+  margin-right: 2px;
+  margin-top: 4px;
 }
 
-.clube-new-value { 
-  font-size: 41pt; 
-  font-weight: 900; 
-  letter-spacing: -2px; 
-  line-height: 0.75; 
+.clube-new-value {
+  font-size: 41pt;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 0.75;
 }
 
 /* =========================================================
