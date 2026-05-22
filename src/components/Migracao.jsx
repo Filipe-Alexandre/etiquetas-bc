@@ -256,7 +256,7 @@ const categoriasData = [
     itens: [
       { comp: "ALEGRIA", gram: "114g", preco: 49.49 },
       { comp: "AMORES", gram: "80g", preco: 39.99 },
-      { comp: "BOMBOM AVELÃ & WHITE TOP", gram: "120g", preco: 59.99 },
+      { comp: "AVELÃ & WHITE TOP", gram: "120g", preco: 59.99 },
       { comp: "BUQUÊ DE ROSAS", gram: "36g", preco: 47.97 },
       { comp: "CAIPIRINHA BRASILIDADES", gram: "108g", preco: 49.49, maior18: true },
       { comp: "CELEBRAR", gram: "96g", preco: 40.99 },
@@ -266,7 +266,7 @@ const categoriasData = [
       { comp: "DELÍRIOS DE CEREJA", gram: "150g", preco: 68.99, maior18: true },
       { comp: "ENCANTOS BRASILEIROS", gram: "108g", preco: 49.49 },
       { comp: "EXPERIÊNCIAS", gram: "192g", preco: 69.99 },
-      { comp: "MOMENTOS", gram: "162g", preco: 58.99 },
+      { comp: "MOMENTOS", gram: "162g", preco: 58.99, maior18: true },
       { comp: "ROSA UNITÁRIA", gram: "12g", preco: 15.99 },
       { comp: "ROSAS", gram: "80g", preco: 39.99 },
       { comp: "SELEÇÕES EMB", gram: "250g", preco: 69.99 },
