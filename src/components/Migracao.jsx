@@ -258,12 +258,12 @@ const categoriasData = [
       { comp: "AMORES", gram: "80g", preco: 39.99 },
       { comp: "BOMBOM AVELÃ & WHITE TOP", gram: "120g", preco: 59.99 },
       { comp: "BUQUÊ DE ROSAS", gram: "36g", preco: 47.97 },
-      { comp: "CAIPIRINHA BRASILIDADES", gram: "108g", preco: 49.49 },
+      { comp: "CAIPIRINHA BRASILIDADES", gram: "108g", preco: 49.49, maior18: true },
       { comp: "CELEBRAR", gram: "96g", preco: 40.99 },
       { comp: "COMBO 3 DELÍCIAS DO BRASIL", gram: "240g", preco: 71.49 },
       { comp: "COMBO MINI", gram: "120g", preco: 35.99 },
       { comp: "DELEITE GATO MIA", gram: "97g", preco: 53.99 },
-      { comp: "DELÍRIOS DE CEREJA", gram: "150g", preco: 68.99 },
+      { comp: "DELÍRIOS DE CEREJA", gram: "150g", preco: 68.99, maior18: true },
       { comp: "ENCANTOS BRASILEIROS", gram: "108g", preco: 49.49 },
       { comp: "EXPERIÊNCIAS", gram: "192g", preco: 69.99 },
       { comp: "MOMENTOS", gram: "162g", preco: 58.99 },
@@ -407,7 +407,7 @@ const categoriasData = [
       { comp: "CREME DE AVELÃ", gram: "90g", preco: 22.99 },
       { comp: "DUO", gram: "90g", preco: 22.99 },
       { comp: "GATO MIA", gram: "90g", preco: 22.99 },
-      { comp: "LICOR DE CEREJA", gram: "90g", preco: 22.99 },
+      { comp: "LICOR DE CEREJA", gram: "90g", preco: 22.99, maior18: true },
       { comp: "PISTACHE", gram: "90g", preco: 22.99 }
     ]
   },
@@ -451,7 +451,8 @@ categoriasData.forEach(cat => {
       categoria: cat.nome,
       complemento: produto.comp,
       gramatura: produto.gram,
-      precoBase: produto.preco
+      precoBase: produto.preco,
+      maior18: produto.maior18 || false //
     });
   });
 });
@@ -634,22 +635,23 @@ export function Migracao({ fecharPainel, recarregarDados }) {
 
     setSalvando(true);
     setProgresso(0);
-    
+
     try {
       for (let i = 0; i < todosOsProdutos.length; i++) {
         const produto = todosOsProdutos[i];
         const docRef = doc(db, "produtos", produto.id);
-        
+
         await setDoc(docRef, {
           categoria: produto.categoria,
           complemento: produto.complemento,
           gramatura: produto.gramatura,
-          precoBase: produto.precoBase
+          precoBase: produto.precoBase,
+          maior18: produto.maior18
         }, { merge: true });
-        
+
         setProgresso(Math.round(((i + 1) / todosOsProdutos.length) * 100));
       }
-      
+
       alert("Catálogo sincronizado com sucesso!");
       if (recarregarDados) recarregarDados();
       carregarProdutosDoBanco(); // Atualiza a tabela na tela
@@ -716,10 +718,10 @@ export function Migracao({ fecharPainel, recarregarDados }) {
               <i className="fa-solid fa-server"></i> Gerenciador de Catálogo
             </h2>
             {/* BOTÃO DA CARGA DE DADOS ESTÁ AQUI EM CIMA AGORA */}
-            <button 
-                onClick={executarSincronizacaoDaCarga} 
-                disabled={salvando || carregando}
-                style={{ background: 'none', border: 'none', color: '#999', fontSize: '10px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+            <button
+              onClick={executarSincronizacaoDaCarga}
+              disabled={salvando || carregando}
+              style={{ background: 'none', border: 'none', color: '#999', fontSize: '10px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', padding: 0 }}
             >
               <i className="fa-solid fa-cloud-arrow-up"></i> ENVIAR CARGA PADRÃO DO CÓDIGO
             </button>
@@ -784,7 +786,10 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                         </td>
 
                         <td className="col-prod">
-                          <div className="prod-nome">{prod.complemento} {prod.gramatura}</div>
+                          <div className="prod-nome">
+                            {prod.complemento} {prod.gramatura}
+                            {prod.maior18 ? <span style={{ color: 'red', marginLeft: '5px', fontSize: '10px' }}> (+18)</span> : ''}
+                          </div>
                           <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
                         </td>
 

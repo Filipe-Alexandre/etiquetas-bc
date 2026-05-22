@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { EtiquetaNormal } from './components/EtiquetaNormal';
 import { EtiquetaDePor } from './components/EtiquetaDePor';
+import { EtiquetaClube } from './components/EtiquetaClube'; // Etiqueta Clube mantida
 import { EtiquetaKit } from './components/EtiquetaKit';
 import { EtiquetaKitDePor } from './components/EtiquetaKitDePor';
 import { PainelValidades } from './components/PainelValidades';
@@ -19,7 +20,6 @@ function App() {
   const [bancoDeDados, setBancoDeDados] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [showAdmin, setShowAdmin] = useState(false);
-
   const [showMigracao, setShowMigracao] = useState(false);
 
   const [selectedItems, setSelectedItems] = useState([]);
@@ -35,14 +35,13 @@ function App() {
       const querySnapshot = await getDocs(collection(db, "produtos"));
       const validadesLocais = JSON.parse(localStorage.getItem('minhas_validades')) || {};
 
-const listaProdutos = querySnapshot.docs.map(doc => {
+      const listaProdutos = querySnapshot.docs.map(doc => {
         const dadosBanco = doc.data();
         let cat = dadosBanco.categoria;
 
         const nomeProduto = (dadosBanco.complemento || "").toUpperCase();
         const gramatura = dadosBanco.gramatura || "";
 
-        // 1. REGRA DO PEGUE E LEVE
         if (cat === 'PEGUE E LEVE' || cat === 'MINI TRUFA' || cat === 'MINI TABLETE') {
           if (nomeProduto.includes('TRUFA') || gramatura === '12g' || gramatura === '30g') {
             cat = 'MINI TRUFA';
@@ -51,8 +50,6 @@ const listaProdutos = querySnapshot.docs.map(doc => {
           }
         }
 
-        // 2. REGRA DO TABLETE RECHEADO (Blindando o Gato Mia)
-        // Se a categoria no banco de dados JÁ É 'GATO MIA', ele ignora essa regra.
         if (nomeProduto.includes('RECHEADO') && cat !== 'GATO MIA') {
             cat = 'TABLETE RECHEADO';
         }
@@ -65,12 +62,24 @@ const listaProdutos = querySnapshot.docs.map(doc => {
         };
       });
 
+      // ORDENAÇÃO DUPLA: Primeiro pela Categoria, depois pelo Complemento (Produto)
+      listaProdutos.sort((a, b) => {
+        if (a.categoria < b.categoria) return -1;
+        if (a.categoria > b.categoria) return 1;
+        
+        // Se as categorias forem iguais, ordena pelo nome do produto
+        const nomeA = (a.complemento || "").trim().toUpperCase();
+        const nomeB = (b.complemento || "").trim().toUpperCase();
+        return nomeA.localeCompare(nomeB);
+      });
+
       const bdAgrupado = listaProdutos.reduce((acc, prod) => {
         if (!acc[prod.categoria]) acc[prod.categoria] = [];
         acc[prod.categoria].push(prod);
         return acc;
       }, {});
 
+      // ORDENAÇÃO DAS CATEGORIAS (Ordem de Exibição na Sidebar)
       const ordemFinal = ['ACESSÓRIOS', 'ALMOFADA', 'CANECA', 'LATA', 'PELÚCIA', 'SEM CATEGORIA'];
       const categoriasOrdenadas = Object.keys(bdAgrupado).sort((a, b) => {
         const indexA = ordemFinal.indexOf(a);
@@ -86,7 +95,7 @@ const listaProdutos = querySnapshot.docs.map(doc => {
 
       setBancoDeDados(bdFinal);
     } catch (error) {
-      console.error("Erro ao buscar dados do Firebase:", error);
+      console.error("Erro ao buscar dados:", error);
     } finally {
       setCarregando(false);
     }
@@ -105,6 +114,8 @@ const listaProdutos = querySnapshot.docs.map(doc => {
   }
 
   const todosProdutos = Object.values(bancoDeDados).flat();
+  
+  // PREPARA OS PRODUTOS SELECIONADOS (Apenas filtrando a lista ordenada)
   const produtosSelecionados = todosProdutos.filter(p => selectedItems.includes(p.id));
 
   const paginas = [];
@@ -127,17 +138,12 @@ const listaProdutos = querySnapshot.docs.map(doc => {
   return (
    <div className={`layout-wrapper ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
       
-      {/* BOTÃO FLUTUANTE INFERIOR DIREITO (FAB) */}
-      <button 
-        className="fab-menu hide-print" 
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        title="Alternar Menu"
-      >
+      <button className="fab-menu hide-print" onClick={() => setSidebarOpen(!sidebarOpen)}>
         <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
       </button>
 
-      {/* OVERLAY PARA CLICAR FORA E FECHAR */}
       {sidebarOpen && <div className="sidebar-overlay hide-print" onClick={() => setSidebarOpen(false)}></div>}
+      
       <Sidebar
         selectedItems={selectedItems}
         toggleItem={toggleItem}
@@ -156,67 +162,31 @@ const listaProdutos = querySnapshot.docs.map(doc => {
         abrirPainelAdmin={() => setShowAdmin(true)}
         abrirPainelPrecos={() => setShowPrecos(true)} 
         abrirPainelMigracao={() => setShowMigracao(true)}
-       
       />
 
       <main className="main-content">
-        {showAdmin && (
-          <PainelValidades
-            todosProdutos={todosProdutos}
-            fecharPainel={() => setShowAdmin(false)}
-            recarregarDados={carregarDadosDoFirebase}
-          />
-        )}
-
-        {showPrecos && (
-          <PainelPrecificacao
-            fecharPainel={() => setShowPrecos(false)}
-            recarregarDados={carregarDadosDoFirebase}
-          />
-        )}
-
-        {showMigracao && (
-          <Migracao 
-            fecharPainel={() => setShowMigracao(false)} 
-            recarregarDados={carregarDadosDoFirebase} 
-          />
-        )}
+        {showAdmin && <PainelValidades todosProdutos={todosProdutos} fecharPainel={() => setShowAdmin(false)} recarregarDados={carregarDadosDoFirebase} />}
+        {showPrecos && <PainelPrecificacao fecharPainel={() => setShowPrecos(false)} recarregarDados={carregarDadosDoFirebase} />}
+        {showMigracao && <Migracao fecharPainel={() => setShowMigracao(false)} recarregarDados={carregarDadosDoFirebase} />}
 
         <div className="area-impressao">
           {labelType === 'KIT' && (
-              <EtiquetaKit 
-                todosProdutos={todosProdutos} 
-                bancoDeDados={bancoDeDados} 
-                kitsParaImpressao={kitsParaImpressao}
-                setKitsParaImpressao={setKitsParaImpressao}
-              />
+              <EtiquetaKit todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
           )}
 
           {labelType === 'KIT DE POR' && (
-              <EtiquetaKitDePor
-                todosProdutos={todosProdutos}
-                bancoDeDados={bancoDeDados}
-                discountType={discountType}
-                discountValue={discountValue}
-                kitsParaImpressao={kitsParaImpressao}
-                setKitsParaImpressao={setKitsParaImpressao}
-              />
+              <EtiquetaKitDePor todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} discountType={discountType} discountValue={discountValue} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
           )}
 
-          {(labelType === 'NORMAL' || labelType === 'DE POR') && (
+          {(labelType === 'NORMAL' || labelType === 'DE POR' || labelType === 'CLUBE') && (
             paginas.length > 0 ? (
               paginas.map((grupo, idx) => (
                 <div key={idx} className="preview-folha">
                   {grupo.map(produto => (
                     <React.Fragment key={produto.id}>
                       {labelType === 'NORMAL' && <EtiquetaNormal produto={produto} />}
-                      {labelType === 'DE POR' && (
-                        <EtiquetaDePor
-                          produto={produto}
-                          discountType={discountType}
-                          discountValue={discountValue}
-                        />
-                      )}
+                      {labelType === 'DE POR' && <EtiquetaDePor produto={produto} discountType={discountType} discountValue={discountValue} />}
+                      {labelType === 'CLUBE' && <EtiquetaClube produto={produto} discountType={discountType} discountValue={discountValue} />}
                     </React.Fragment>
                   ))}
                 </div>

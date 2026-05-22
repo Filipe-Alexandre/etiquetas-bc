@@ -163,7 +163,7 @@ body {
     /* Encolhe para 45% visualmente */
     transform-origin: top center;
     /* Mantém presa no topo */
-    margin-bottom: -15cm!important;
+    margin-bottom: -15cm !important;
     /* Compensa o espaço vazio da escala */
   }
 }
@@ -507,9 +507,11 @@ body {
 }
 
 .dp-logo-clube {
-  height: 14px;
-  width: 35%;
+  height: .7cm;
+  /* width: 35%; */
   object-fit: contain;
+  position: absolute;
+  transform: translate(0, -10px);
 }
 
 .dp-por-bloco {
@@ -528,11 +530,12 @@ body {
   font-size: 5.5pt;
   line-height: 1;
   margin-bottom: 4px;
+  transform: translateY(6px);
 }
 
 .dp-por-preco {
   display: flex;
-  transform: translate(-20px, 22px);
+  transform: translate(-20px, 25px);
 }
 
 .dp-por-texto span {
@@ -1472,6 +1475,7 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   }
 }
+
 /* ESTILOS DA MODAL DE SENHA E PRECIFICAÇÃO */
 .modal-senha {
   max-width: 350px !important;
@@ -1514,7 +1518,9 @@ body {
 
 .btn-update-catalog .progress-fill {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
   background-color: var(--laranja);
   z-index: 0;
   transition: width 0.2s ease;
@@ -1532,4 +1538,235 @@ body {
 
 .btn-update-catalog.loading .btn-content {
   color: white;
+}
+
+/* =========================================================
+   10. ETIQUETA "CLUBE" (FONTES ADOBE E CURVA DA FOTO)
+========================================================= */
+.etiqueta.clube {
+  position: relative; 
+  width: 8cm; 
+  height: 4cm; 
+  background: var(--branco); 
+  border: 1px dashed #ccc; 
+  overflow: hidden; 
+  display: flex; 
+  text-transform: uppercase;
+}
+
+/* LADO ESQUERDO (BRANCO) */
+.clube-left { 
+  width: 45%;
+  padding: 12px 0px 12px 12px; 
+  display: flex; 
+  flex-direction: column; 
+  z-index: 2; 
+}
+
+.clube-cat { 
+  color: var(--laranja); 
+  font-size: 8pt; 
+  font-weight: 900; 
+  line-height: 1; 
+  margin-bottom: 2px;
+}
+
+.clube-name { 
+  color: var(--marrom); 
+  font-size: 14pt; 
+  font-weight: 800; 
+  font-stretch: condensed; 
+  line-height: 0.95; 
+  display: -webkit-box; 
+  line-clamp: 3;
+  -webkit-line-clamp: 3; 
+  -webkit-box-orient: vertical; 
+  overflow: hidden; 
+  letter-spacing: -0.5px; 
+}
+
+/* BOX PREÇO ANTIGO */
+.clube-old-price-box { 
+  margin-top: auto; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+}
+
+.clube-old-label { 
+  font-size: 6pt; 
+  color: var(--laranja); 
+  font-weight: 900; 
+  line-height: 1.1; 
+}
+
+.clube-old-value { 
+  font-size: 16pt; 
+  color: var(--marrom); 
+  font-weight: 900; 
+  letter-spacing: -1px; 
+  line-height: 0.8; 
+  text-decoration: line-through; 
+  display: flex;
+  align-items: flex-start; 
+}
+
+.clube-old-rs {
+  font-size: 8pt;
+  margin-right: 2px;
+  margin-top: 1px; 
+  font-weight: 900;
+}
+
+.clube-right {
+  position: absolute; 
+  top: 0; 
+  right: 0; 
+  bottom: 0; 
+  width: 59%;
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between; 
+  align-items: flex-end; 
+  padding: 12px 12px 10px 15px; 
+  z-index: 1;
+}
+
+.clube-bg-curve {
+  position: absolute; 
+  top: 0; 
+  right: 0; 
+  bottom: 0; 
+  left: 0;
+  background-color: var(--laranja);
+  
+  clip-path: polygon(25% 0, 100% 0, 100% 100%, 0% 100%);
+  border-top-left-radius: 150px 250px;
+  
+  z-index: -1;
+}
+
+.clube-badge { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-end; 
+}
+
+.clube-exclusive { 
+  font-size: 6pt; 
+  color: var(--branco); 
+  font-weight: 900; 
+  margin-bottom: 2px; 
+}
+
+.clube-logo-svg { 
+  width: 80px; 
+  height: auto; 
+  object-fit: contain; 
+}
+
+/* BOX PREÇO NOVO */
+.clube-new-price-box { 
+  display: flex; 
+  align-items: flex-start; 
+  color: var(--branco); 
+}
+
+.clube-new-rs { 
+  font-size: 10pt; 
+  font-weight: 900; 
+  margin-right: 2px; 
+  margin-top: 4px; 
+}
+
+.clube-new-value { 
+  font-size: 41pt; 
+  font-weight: 900; 
+  letter-spacing: -2px; 
+  line-height: 0.75; 
+}
+
+/* =========================================================
+   12. PLACA +18 (ITENS ALCOÓLICOS)
+========================================================= */
+.placa-18 {
+  width: 20px;
+  /* Tamanho ajustável */
+  height: auto;
+  object-fit: contain;
+  margin-top: 4px;
+  /* Dá um espacinho abaixo da logo */
+  filter: grayscale(100%) contrast(1.5);
+  /* Mantém preto e branco pra impressão, se desejar. Remova essa linha se quiser colorida */
+}
+
+/* Ajuste específico para a etiqueta KIT, para ficar do lado da logo */
+.etiqueta.kit .logo-container-kit .placa-18 {
+  margin-top: 0;
+  margin-left: 8px;
+  /* Dá um espacinho ao lado da logo */
+  width: 24px;
+}
+
+/* =========================================================
+   11. CONTROLES FLUTUANTES NAS ETIQUETAS (Adicionar/Remover)
+========================================================= */
+.tag-wrapper {
+  position: relative;
+}
+
+.tag-controls {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+  opacity: 0;
+  /* Escondido por padrão, revela no hover */
+  transition: opacity 0.2s;
+}
+
+.tag-wrapper:hover .tag-controls {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .tag-controls {
+    opacity: 1;
+    transform: scale(1.3);
+    top: 15px;
+    right: 0px;
+  }
+}
+
+.btn-tag-ctrl {
+  background: var(--marrom);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s;
+}
+
+.btn-tag-ctrl:active {
+  transform: scale(0.9);
+}
+
+.btn-tag-ctrl.add {
+  background: #2e7d32;
+}
+
+.btn-tag-ctrl.remove {
+  background: #f57f17;
+}
+
+.btn-tag-ctrl.trash {
+  background: #c62828;
 }

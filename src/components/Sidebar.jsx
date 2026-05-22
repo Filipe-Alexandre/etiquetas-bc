@@ -35,7 +35,7 @@ export function Sidebar({
             <div className="label-type-selector">
                 <h3 className="section-title">TIPO DE ETIQUETA</h3>
                 <div className="radio-group-vertical">
-                    {['NORMAL', 'DE POR', 'KIT', 'KIT DE POR'].map(type => (
+                    {['NORMAL', 'DE POR', 'CLUBE', 'KIT', 'KIT DE POR'].map(type => (
                         <label key={type} className="radio-option">
                             <input
                                 type="radio"
@@ -50,7 +50,7 @@ export function Sidebar({
             </div>
 
             {/* --- BLOCO DE DESCONTO --- */}
-            {(labelType === 'DE POR' || labelType === 'KIT DE POR') && (
+            {(labelType === 'DE POR' || labelType === 'CLUBE' || labelType === 'KIT DE POR') && (
                 <div className="discount-config" style={{ marginBottom: '25px' }}>
                     <h3 className="section-title">APLICAR DESCONTO</h3>
                     <div style={{ display: 'flex', gap: '8px' }}>
