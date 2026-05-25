@@ -20,7 +20,6 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
         return Number(valor).toFixed(2).replace('.', ',');
     };
 
-    // CORREÇÃO AQUI
     const mascaraData = (valor) => {
         if (!valor) return '';
         let v = String(valor).replace(/\D/g, '');
@@ -35,13 +34,11 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
         return prod?.maior18 === true;
     });
 
-    // No EtiquetaKitDePor.jsx, substitua a função salvarKitParaImpressao por esta:
     const salvarKitParaImpressao = () => {
         if (!kitName) return alert("Dê um nome ao kit promocional antes de salvar!");
 
         const produtosValidos = rows.filter(r => r.id !== "");
 
-        // VERIFICA SE ALGUM DOS ITENS VÁLIDOS É ALCOÓLICO
         const kitTemAlcool = produtosValidos.some(r => {
             const prod = todosProdutos.find(p => p.id === r.id);
             return prod?.maior18 === true;
@@ -49,7 +46,18 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
 
         const gramaturaTotalCalc = produtosValidos.reduce((acc, row) => {
             const prod = todosProdutos.find(p => p.id === row.id);
-            if (prod && prod.gramatura) return acc + (parseInt(prod.gramatura.replace(/\D/g, ''), 10) * row.qtd);
+
+            if (prod && prod.gramatura) {
+                const gramaturaTexto = prod.gramatura.toLowerCase();
+
+                if (!gramaturaTexto.includes('un') && !gramaturaTexto.includes('pc')) {
+                    const valorNumerico = parseInt(gramaturaTexto.replace(/\D/g, ''), 10);
+
+                    if (!isNaN(valorNumerico)) {
+                        return acc + (valorNumerico * row.qtd);
+                    }
+                }
+            }
             return acc;
         }, 0);
 
@@ -80,13 +88,31 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                 gramatura: "",
                 precoBase: valorDeCalc,
                 precoPromo: valorPorCalc,
-                maior18: kitTemAlcool // <--- REPASSA A TAG ALCOÓLICA PARA A ETIQUETA MENOR
+                maior18: kitTemAlcool
             }
         };
 
         setKitsParaImpressao([novoKit, ...kitsParaImpressao]);
         setKitName(""); setBarcodeValue(""); setQtdTabelas(1); setQtdEtiquetas(1);
         setRows([{ id: "", qtd: 1 }, { id: "", qtd: 1 }, { id: "", qtd: 1 }]);
+    };
+
+    // NOVA FUNÇÃO DE CONTROLE DE CÓPIAS
+    const alterarQuantidadeItem = (idKit, tipoItem, delta) => {
+        setKitsParaImpressao(prev => {
+            return prev.map(kit => {
+                if (kit.id === idKit) {
+                    const novoKit = { ...kit };
+                    if (tipoItem === 'tabela') {
+                        novoKit.qtdTabelas = Math.max(0, novoKit.qtdTabelas + delta);
+                    } else if (tipoItem === 'etiqueta') {
+                        novoKit.qtdEtiquetas = Math.max(0, novoKit.qtdEtiquetas + delta);
+                    }
+                    return novoKit;
+                }
+                return kit;
+            }).filter(kit => kit.qtdTabelas > 0 || kit.qtdEtiquetas > 0);
+        });
     };
 
     const editorValorDe = rows.reduce((acc, row) => {
@@ -196,7 +222,6 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                     <button className="btn-add-row" onClick={() => setRows([...rows, { id: "", qtd: 1 }])}>+ ADICIONAR PRODUTO</button>
 
                     <div className="kit-footer">
-                        {/* Aviso removido da interface de montagem. O flex: 1 faz o código de barras preencher o espaço vazio */}
                         <div className="kit-barcode-area" style={{ flex: 1, marginRight: '15px' }}>
                             <input type="text" className="barcode-input" placeholder="Cód. Barras (Opcional)" value={barcodeValue} onChange={(e) => setBarcodeValue(e.target.value)} style={{ width: '100%' }} />
                             {barcodeValue && <div className="barcode-display"><Barcode value={barcodeValue} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
@@ -225,45 +250,65 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                             });
 
                             return (
-                                <div className={`etiqueta kit ${isPromo ? 'depor-theme' : ''}`} key={`print-tab-${idxPagina}-${idxItem}`} style={{ width: '100%', maxWidth: '12cm', margin: '0 auto', pageBreakInside: 'avoid' }}>
-                                    <div className="kit-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                        <span className="kit-name-text" style={{ flex: 1 }}>{item.kit.nome}</span>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <img src={logo2} alt="Brasil Cacau" className="kit-logo" />
-                                            {kitImpressoPromoTemAlcool && <img src={placa} alt="Proibido menores de 18 anos" style={{ width: '24px', height: 'auto' }} />}
-                                        </div>
+                                <div key={`print-tab-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '100%', maxWidth: '12cm', margin: '0 auto', pageBreakInside: 'avoid' }}>
+
+                                    <div className="hide-print print-floating-controls">
+                                        <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
+                                            <i className="fa-solid fa-trash"></i>
+                                        </button>
+                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">+1
+                                        </button>
                                     </div>
-                                    <div className="kit-subheader"><div className="col-produto">PRODUTO</div><div className="col-validade text-center">VALIDADE</div><div className="col-preco text-center">PREÇO</div></div>
-                                    <div className="kit-body">
-                                        {item.kit.produtos.map((row, idxProd) => {
-                                            const prod = todosProdutos.find(p => p.id === row.id);
-                                            const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.categoria + ' ' + prod.complemento + ' ' + prod.gramatura) : '';
-                                            return (
-                                                <div className="kit-row" key={idxProd} style={{ padding: '4px 0', minHeight: '24px' }}>
-                                                    <div className="col-produto">{prod && <span className="row-number">{idxProd + 1}</span>}<div>{nomeTexto}</div></div>
-                                                    <div className="col-validade text-center">{prod ? (row.validade || (prod.validade ? mascaraData(prod.validade) : '')) : ''}</div>
-                                                    <div className="col-preco text-center">{prod ? `R$ ${formataPreco(prod.precoBase * row.qtd)}` : ''}</div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="kit-footer">
-                                        <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br />consulte a embalagem</p></div>
-                                        {item.kit.barcode && <div className="barcode-display"><Barcode value={item.kit.barcode} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
-                                        {isPromo ? (
-                                            <div className="kit-total-area depor-mode">
-                                                <div className="total-de"><span className="texto-de">DE R$</span><span className="valor-de">{formataPreco(item.kit.valorDe)}</span></div>
-                                                <div className="total-por"><span className="texto-por">POR R$</span><span className="valor-por">{formataPreco(item.kit.valorPor)}</span></div>
+
+                                    <div className={`etiqueta kit ${isPromo ? 'depor-theme' : ''}`}>
+                                        <div className="kit-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                            <span className="kit-name-text" style={{ flex: 1 }}>{item.kit.nome}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <img src={logo2} alt="Brasil Cacau" className="kit-logo" />
+                                                {kitImpressoPromoTemAlcool && <img src={placa} alt="Proibido menores de 18 anos" style={{ width: '24px', height: 'auto' }} />}
                                             </div>
-                                        ) : (
-                                            <div className="kit-total-area"><span className="total-label">Total</span><div className="total-box"><span className="moeda-total">R$</span><span className="valor-total">{formataPreco(item.kit.total)}</span></div></div>
-                                        )}
+                                        </div>
+                                        <div className="kit-subheader"><div className="col-produto">PRODUTO</div><div className="col-validade text-center">VALIDADE</div><div className="col-preco text-center">PREÇO</div></div>
+                                        <div className="kit-body">
+                                            {item.kit.produtos.map((row, idxProd) => {
+                                                const prod = todosProdutos.find(p => p.id === row.id);
+                                                const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.categoria + ' ' + prod.complemento + ' ' + prod.gramatura) : '';
+                                                return (
+                                                    <div className="kit-row" key={idxProd} style={{ padding: '4px 0', minHeight: '24px' }}>
+                                                        <div className="col-produto">{prod && <span className="row-number">{idxProd + 1}</span>}<div>{nomeTexto}</div></div>
+                                                        <div className="col-validade text-center">{prod ? (row.validade || (prod.validade ? mascaraData(prod.validade) : '')) : ''}</div>
+                                                        <div className="col-preco text-center">{prod ? `R$ ${formataPreco(prod.precoBase * row.qtd)}` : ''}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="kit-footer">
+                                            <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br />consulte a embalagem</p></div>
+                                            {item.kit.barcode && <div className="barcode-display"><Barcode value={item.kit.barcode} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
+                                            {isPromo ? (
+                                                <div className="kit-total-area depor-mode">
+                                                    <div className="total-de"><span className="texto-de">DE R$</span><span className="valor-de">{formataPreco(item.kit.valorDe)}</span></div>
+                                                    <div className="total-por"><span className="texto-por">POR R$</span><span className="valor-por">{formataPreco(item.kit.valorPor)}</span></div>
+                                                </div>
+                                            ) : (
+                                                <div className="kit-total-area"><span className="total-label">Total</span><div className="total-box"><span className="moeda-total">R$</span><span className="valor-total">{formataPreco(item.kit.total)}</span></div></div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             );
                         } else {
                             return (
-                                <div key={`print-etiq-${idxPagina}-${idxItem}`} style={{ width: '49%', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
+                                <div key={`print-etiq-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '49%', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
+
+                                    <div className="hide-print print-floating-controls">
+                                        <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
+                                            <i className="fa-solid fa-trash"></i>
+                                        </button>
+                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">+1
+                                        </button>
+                                    </div>
+
                                     <EtiquetaDePor produto={item.kit.produtoSintetico} discountType={discountType} discountValue={discountValue} />
                                 </div>
                             );

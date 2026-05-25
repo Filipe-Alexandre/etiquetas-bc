@@ -1760,3 +1760,52 @@ body {
   background: #c62828;
 }
 
+/* =========================================================
+   14. CONTROLES FLUTUANTES DA IMPRESSÃO (GRUPO DE BOTÕES)
+========================================================= */
+.print-floating-controls {
+  position: absolute;
+  font-size: 8px;
+  top: -12px;
+  right: 4px;
+  display: flex;
+  z-index: 10;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  width: 50px;
+  text-align: center;
+  border-radius: 4px;
+  overflow: hidden; 
+}
+
+.btn-float-remove, .btn-float-add {
+  border: none;
+  color: #fff;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-float-remove {
+  background-color: #e37164;
+  /* padding: 0 12px; */
+  width: 25px;
+}
+
+.btn-float-remove:hover {
+  background-color: #c0392b;
+}
+
+.btn-float-add {
+  color: #fff;
+  width: 25px;
+  background-color: #73ed79;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-float-add:hover {
+  background-color: #27ae60;
+}

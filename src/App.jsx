@@ -62,12 +62,10 @@ function App() {
         };
       });
 
-      // ORDENAÇÃO DUPLA: Primeiro pela Categoria, depois pelo Complemento (Produto)
+      // ORDENAÇÃO DUPLA
       listaProdutos.sort((a, b) => {
         if (a.categoria < b.categoria) return -1;
         if (a.categoria > b.categoria) return 1;
-        
-        // Se as categorias forem iguais, ordena pelo nome do produto
         const nomeA = (a.complemento || "").trim().toUpperCase();
         const nomeB = (b.complemento || "").trim().toUpperCase();
         return nomeA.localeCompare(nomeB);
@@ -79,7 +77,6 @@ function App() {
         return acc;
       }, {});
 
-      // ORDENAÇÃO DAS CATEGORIAS (Ordem de Exibição na Sidebar)
       const ordemFinal = ['ACESSÓRIOS', 'ALMOFADA', 'CANECA', 'LATA', 'PELÚCIA', 'SEM CATEGORIA'];
       const categoriasOrdenadas = Object.keys(bdAgrupado).sort((a, b) => {
         const indexA = ordemFinal.indexOf(a);
@@ -115,8 +112,38 @@ function App() {
 
   const todosProdutos = Object.values(bancoDeDados).flat();
   
-  // PREPARA OS PRODUTOS SELECIONADOS (Apenas filtrando a lista ordenada)
-  const produtosSelecionados = todosProdutos.filter(p => selectedItems.includes(p.id));
+  // FUNÇÃO NOVA: Adiciona ou remove itens da memória de impressão individual
+  const alterarQuantidadeIndividual = (id, delta) => {
+    if (delta === 1) {
+      setSelectedItems(prev => [...prev, id]); // Adiciona mais uma cópia do ID
+    } else if (delta === -1) {
+      setSelectedItems(prev => {
+        const index = prev.indexOf(id);
+        if (index > -1) {
+          const next = [...prev];
+          next.splice(index, 1); // Remove apenas UMA cópia
+          return next;
+        }
+        return prev;
+      });
+    }
+  };
+
+  // LÓGICA ATUALIZADA: Conta as cópias e preserva a ordem alfabética/categoria
+  const countMap = selectedItems.reduce((acc, id) => {
+    acc[id] = (acc[id] || 0) + 1;
+    return acc;
+  }, {});
+
+  const produtosSelecionados = [];
+  todosProdutos.forEach(p => {
+    if (countMap[p.id]) {
+      for (let i = 0; i < countMap[p.id]; i++) {
+        // Gera um ID único para o React não reclamar de chaves duplicadas na hora de renderizar
+        produtosSelecionados.push({ ...p, _printId: `${p.id}-${i}` });
+      }
+    }
+  });
 
   const paginas = [];
   for (let i = 0; i < produtosSelecionados.length; i += 12) {
@@ -124,15 +151,20 @@ function App() {
   }
 
   const toggleItem = (id) => {
+    // Se desmarcar na sidebar, remove TODAS as cópias. Se marcar, adiciona UMA.
     setSelectedItems(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const selectAllCategory = (catName) => {
     const idsDaCat = bancoDeDados[catName].map(p => p.id);
     const todosJaSelecionados = idsDaCat.every(id => selectedItems.includes(id));
-    setSelectedItems(prev => todosJaSelecionados
-      ? prev.filter(id => !idsDaCat.includes(id))
-      : [...new Set([...prev, ...idsDaCat])]);
+    
+    if (todosJaSelecionados) {
+      setSelectedItems(prev => prev.filter(id => !idsDaCat.includes(id)));
+    } else {
+      const idsToAdd = idsDaCat.filter(id => !selectedItems.includes(id));
+      setSelectedItems(prev => [...prev, ...idsToAdd]);
+    }
   };
 
   return (
@@ -183,11 +215,23 @@ function App() {
               paginas.map((grupo, idx) => (
                 <div key={idx} className="preview-folha">
                   {grupo.map(produto => (
-                    <React.Fragment key={produto.id}>
+                    
+                    // AQUI ENTRA A ESTRUTURA COM OS BOTÕES FLUTUANTES
+                    <div key={produto._printId} style={{ position: 'relative', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
+                      
+                      <div className="hide-print print-floating-controls">
+                        <button className="btn-float-remove" onClick={() => alterarQuantidadeIndividual(produto.id, -1)} title="Remover">
+                            <i className="fa-solid fa-trash"></i>
+                        </button>
+                        <button className="btn-float-add" onClick={() => alterarQuantidadeIndividual(produto.id, 1)} title="Duplicar">
+                            +1
+                        </button>
+                      </div>
+
                       {labelType === 'NORMAL' && <EtiquetaNormal produto={produto} />}
                       {labelType === 'DE POR - AMARELA' && <EtiquetaDePor produto={produto} discountType={discountType} discountValue={discountValue} />}
                       {labelType === 'DE POR - BRANCA' && <EtiquetaClube produto={produto} discountType={discountType} discountValue={discountValue} />}
-                    </React.Fragment>
+                    </div>
                   ))}
                 </div>
               ))
