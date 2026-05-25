@@ -109,12 +109,12 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
 
-            <div className="menu-montagem hide-print" style={{ backgroundColor: 'var(--bg-sidebar)', padding: '25px', borderRadius: '12px', border: '1px solid #ddd', width: '21cm', marginBottom: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+            <div className="menu-montagem hide-print" style={{ backgroundColor: 'var(--bg-sidebar)', padding: '5%', borderRadius: '12px', border: '1px solid #ddd', width: '100%', maxWidth: '21cm', boxSizing: 'border-box', marginBottom: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
                 <div style={{ textAlign: 'center', color: 'var(--marrom)', fontWeight: '900', marginBottom: '20px', fontSize: '14pt' }}>MENU DE MONTAGEM (KIT NORMAL)</div>
 
-                <div className="print-controls" style={{ display: 'flex', gap: '20px', background: '#fff', padding: '15px 20px', border: '1px solid #ccc', marginBottom: '20px', justifyContent: 'center', borderRadius: '8px' }}>
+                <div className="print-controls" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', background: '#fff', padding: '15px 20px', border: '1px solid #ccc', marginBottom: '20px', justifyContent: 'center', borderRadius: '8px' }}>
                     <label style={{ fontWeight: 'bold', fontSize: '10pt', color: 'var(--marrom)', display: 'flex', alignItems: 'center', gap: '8px' }}>Qtd. Tabelas: <input type="number" min="0" value={qtdTabelas} onChange={e => setQtdTabelas(Number(e.target.value))} style={{ width: '50px', padding: '6px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '4px' }} /></label>
-                    <label style={{ fontWeight: 'bold', fontSize: '10pt', color: 'var(--marrom)', display: 'flex', alignItems: 'center', gap: '8px' }}>Qtd. Etiquetas Menores: <input type="number" min="0" value={qtdEtiquetas} onChange={e => setQtdEtiquetas(Number(e.target.value))} style={{ width: '50px', padding: '6px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '4px' }} /></label>
+                    <label style={{ fontWeight: 'bold', fontSize: '10pt', color: 'var(--marrom)', display: 'flex', alignItems: 'center', gap: '8px' }}>Qtd. Etiquetas: <input type="number" min="0" value={qtdEtiquetas} onChange={e => setQtdEtiquetas(Number(e.target.value))} style={{ width: '50px', padding: '6px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '4px' }} /></label>
                 </div>
 
                 <input type="text" className="search-kit-input" placeholder="🔍 BUSCAR E FILTRAR PRODUTOS..." value={buscaProd} onChange={e => setBuscaProd(e.target.value.toLowerCase())} style={{ marginBottom: '15px', background: '#fff' }} />
