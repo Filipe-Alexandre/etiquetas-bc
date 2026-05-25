@@ -184,9 +184,9 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                     <button className="btn-add-row" onClick={() => setRows([...rows, { id: "", qtd: 1 }])}>+ ADICIONAR PRODUTO</button>
 
                     <div className="kit-footer">
-                        <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br />consulte a embalagem</p></div>
-                        <div className="kit-barcode-area">
-                            <input type="text" className="barcode-input" placeholder="Cód. Barras (Opcional)" value={barcodeValue} onChange={(e) => setBarcodeValue(e.target.value)} />
+                        {/* Aviso removido da interface de montagem. O flex: 1 faz o código de barras preencher o espaço vazio */}
+                        <div className="kit-barcode-area" style={{ flex: 1, marginRight: '15px' }}>
+                            <input type="text" className="barcode-input" placeholder="Cód. Barras (Opcional)" value={barcodeValue} onChange={(e) => setBarcodeValue(e.target.value)} style={{ width: '100%' }} />
                             {barcodeValue && <div className="barcode-display"><Barcode value={barcodeValue} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
                         </div>
                         <div className="kit-total-area">
@@ -200,8 +200,8 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                    <button className="btn-action btn-orange" style={{ flex: 1, padding: '15px' }} onClick={salvarKitParaImpressao}><i className="fa-solid fa-floppy-disk"></i> ADICIONAR ESTE KIT À FOLHA</button>
-                    {kitsParaImpressao.length > 0 && <button className="btn-action btn-brown" onClick={() => setKitsParaImpressao([])} style={{ width: '200px' }}><i className="fa-solid fa-trash"></i> LIMPAR FOLHAS</button>}
+                    <button className="btn-action btn-orange" style={{ flex: 1, padding: '15px' }} onClick={salvarKitParaImpressao}><i className="fa-solid fa-floppy-disk"></i> ADICIONAR À FOLHA</button>
+                    {kitsParaImpressao.length > 0 && <button className="btn-action btn-brown" onClick={() => setKitsParaImpressao([])} style={{ width: '50%' }}><i className="fa-solid fa-trash"></i> LIMPAR FOLHAS</button>}
                 </div>
             </div>
 
