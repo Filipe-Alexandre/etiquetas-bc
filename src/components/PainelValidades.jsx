@@ -76,9 +76,15 @@ export function PainelValidades({ todosProdutos, fecharPainel, recarregarDados }
     return 'em-dia';
   };
 
+  // 🟢 CORREÇÃO CRÍTICA: Definindo as categorias que NÃO devem exigir validade
+  const categoriasIgnoradas = ["ACESSÓRIOS", "ALMOFADA", "CANECA", "LATA", "PELÚCIA", "SEM CATEGORIA"];
+
+  // Filtra as categorias ignoradas antes de processar a busca e os alertas
   let produtosFiltrados = todosProdutos.filter(p =>
-    p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) ||
-    p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
+    !categoriasIgnoradas.includes(p.categoria) && (
+      p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) ||
+      p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
+    )
   );
 
   if (mostrarApenasAlertas) {

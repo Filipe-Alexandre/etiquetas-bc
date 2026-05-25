@@ -9,7 +9,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
     const [buscaProd, setBuscaProd] = useState("");
     const [kitName, setKitName] = useState("");
     const [barcodeValue, setBarcodeValue] = useState("");
-    
+
     const [qtdTabelas, setQtdTabelas] = useState(1);
     const [qtdEtiquetas, setQtdEtiquetas] = useState(1);
 
@@ -23,8 +23,8 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
     // CORREÇÃO DA TELA BRANCA AQUI: Se a data for inválida ou vazia, ele escapa sem travar
     const mascaraData = (valor) => {
         if (!valor) return '';
-        let v = String(valor).replace(/\D/g, ''); 
-        if (v.length > 8) v = v.slice(0, 8); 
+        let v = String(valor).replace(/\D/g, '');
+        if (v.length > 8) v = v.slice(0, 8);
         if (v.length >= 5) return `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
         else if (v.length >= 3) return `${v.slice(0, 2)}/${v.slice(2)}`;
         return v;
@@ -35,7 +35,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
         return prod?.maior18 === true;
     });
 
-// No EtiquetaKit.jsx, substitua a função salvarKitParaImpressao por esta:
+    // No EtiquetaKit.jsx, substitua a função salvarKitParaImpressao por esta:
     const salvarKitParaImpressao = () => {
         if (!kitName) return alert("Dê um nome ao kit antes de salvar!");
 
@@ -85,8 +85,8 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
     const elementosTotais = [];
     kitsParaImpressao.forEach(kit => {
-        for(let i = 0; i < kit.qtdTabelas; i++) elementosTotais.push({ tipo: 'tabela', kit });
-        for(let i = 0; i < kit.qtdEtiquetas; i++) elementosTotais.push({ tipo: 'etiqueta', kit });
+        for (let i = 0; i < kit.qtdTabelas; i++) elementosTotais.push({ tipo: 'tabela', kit });
+        for (let i = 0; i < kit.qtdEtiquetas; i++) elementosTotais.push({ tipo: 'etiqueta', kit });
     });
 
     const paginasA4 = [];
@@ -108,7 +108,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            
+
             <div className="menu-montagem hide-print" style={{ backgroundColor: 'var(--bg-sidebar)', padding: '25px', borderRadius: '12px', border: '1px solid #ddd', width: '21cm', marginBottom: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
                 <div style={{ textAlign: 'center', color: 'var(--marrom)', fontWeight: '900', marginBottom: '20px', fontSize: '14pt' }}>MENU DE MONTAGEM (KIT NORMAL)</div>
 
@@ -148,7 +148,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                                 {bancoDeDados && Object.keys(bancoDeDados).map(cat => (
                                                     <optgroup key={cat} label={cat}>
                                                         {bancoDeDados[cat].filter(p => p.complemento.toLowerCase().includes(buscaProd) || p.categoria.toLowerCase().includes(buscaProd)).map(p => (
-                                                            <option key={p.id} value={p.id}>{p.complemento} {p.gramatura}</option>
+                                                            <option key={p.id} value={p.id}> {p.complemento} {p.gramatura}</option>
                                                         ))}
                                                     </optgroup>
                                                 ))}
@@ -157,7 +157,21 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                         </div>
                                     </div>
                                     <div className="col-validade text-center validade-box">
-                                        {prod ? <input type="text" placeholder="DD/MM/AAAA" className="input-validade-kit" maxLength="10" value={row.validade !== undefined ? row.validade : (prod?.validade ? mascaraData(prod.validade) : '')} onChange={(e) => { const n = [...rows]; n[index].validade = mascaraData(e.target.value); setRows(n); }} style={{ borderBottom: '1px dotted #ccc' }} /> : ''}
+                                        {prod ? (
+                                            ["ACESSÓRIOS", "ALMOFADA", "CANECA", "LATA", "PELÚCIA", "SEM CATEGORIA"].includes(prod.categoria) ? (
+                                                <span style={{ color: '#999', fontSize: '10px' }}>N/A</span>
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    placeholder="DD/MM/AAAA"
+                                                    className="input-validade-kit"
+                                                    maxLength="10"
+                                                    value={row.validade !== undefined ? row.validade : (prod?.validade ? mascaraData(prod.validade) : '')}
+                                                    onChange={(e) => { const n = [...rows]; n[index].validade = mascaraData(e.target.value); setRows(n); }}
+                                                    style={{ borderBottom: '1px dotted #ccc' }}
+                                                />
+                                            )
+                                        ) : ''}
                                     </div>
                                     <div className="col-preco text-center preco-box">
                                         {prod ? <><span className="moeda kit">R$</span> {formataPreco(prod.precoBase * row.qtd)}</> : ''}
@@ -170,7 +184,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                     <button className="btn-add-row" onClick={() => setRows([...rows, { id: "", qtd: 1 }])}>+ ADICIONAR PRODUTO</button>
 
                     <div className="kit-footer">
-                        <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br/>consulte a embalagem</p></div>
+                        <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br />consulte a embalagem</p></div>
                         <div className="kit-barcode-area">
                             <input type="text" className="barcode-input" placeholder="Cód. Barras (Opcional)" value={barcodeValue} onChange={(e) => setBarcodeValue(e.target.value)} />
                             {barcodeValue && <div className="barcode-display"><Barcode value={barcodeValue} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
@@ -214,7 +228,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                         {item.kit.produtos.map((row, idxProd) => {
                                             const prod = todosProdutos.find(p => p.id === row.id);
                                             // Correção de Sintaxe Segura do React
-                                            const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.complemento + ' ' + prod.gramatura) : '';
+                                            const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.categoria + ' ' + prod.complemento + ' ' + prod.gramatura) : '';
                                             return (
                                                 <div className="kit-row" key={idxProd} style={{ padding: '4px 0', minHeight: '24px' }}>
                                                     <div className="col-produto">{prod && <span className="row-number">{idxProd + 1}</span>}<div>{nomeTexto}</div></div>
@@ -225,7 +239,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                         })}
                                     </div>
                                     <div className="kit-footer">
-                                        <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br/>consulte a embalagem</p></div>
+                                        <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br />consulte a embalagem</p></div>
                                         {item.kit.barcode && <div className="barcode-display"><Barcode value={item.kit.barcode} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
                                         <div className="kit-total-area"><span className="total-label">Total</span><div className="total-box"><span className="moeda-total">R$</span><span className="valor-total">{formataPreco(item.kit.total)}</span></div></div>
                                     </div>

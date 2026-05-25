@@ -169,7 +169,21 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                         </div>
                                     </div>
                                     <div className="col-validade text-center validade-box">
-                                        {prod ? <input type="text" placeholder="DD/MM/AAAA" className="input-validade-kit" maxLength="10" value={row.validade !== undefined ? row.validade : (prod?.validade ? mascaraData(prod.validade) : '')} onChange={(e) => { const n = [...rows]; n[index].validade = mascaraData(e.target.value); setRows(n); }} style={{ borderBottom: '1px dotted var(--marrom)' }} /> : ''}
+                                        {prod ? (
+                                            ["ACESSÓRIOS", "ALMOFADA", "CANECA", "LATA", "PELÚCIA", "SEM CATEGORIA"].includes(prod.categoria) ? (
+                                                <span style={{ color: '#999', fontSize: '10px' }}>N/A</span>
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    placeholder="DD/MM/AAAA"
+                                                    className="input-validade-kit"
+                                                    maxLength="10"
+                                                    value={row.validade !== undefined ? row.validade : (prod?.validade ? mascaraData(prod.validade) : '')}
+                                                    onChange={(e) => { const n = [...rows]; n[index].validade = mascaraData(e.target.value); setRows(n); }}
+                                                    style={{ borderBottom: '1px dotted #ccc' }}
+                                                />
+                                            )
+                                        ) : ''}
                                     </div>
                                     <div className="col-preco text-center preco-box">
                                         {prod ? <><span className="moeda kit">R$</span> {formataPreco(prod.precoBase * row.qtd)}</> : ''}
@@ -223,7 +237,7 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                     <div className="kit-body">
                                         {item.kit.produtos.map((row, idxProd) => {
                                             const prod = todosProdutos.find(p => p.id === row.id);
-                                            const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.complemento + ' ' + prod.gramatura) : '';
+                                            const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.categoria + ' ' + prod.complemento + ' ' + prod.gramatura) : '';
                                             return (
                                                 <div className="kit-row" key={idxProd} style={{ padding: '4px 0', minHeight: '24px' }}>
                                                     <div className="col-produto">{prod && <span className="row-number">{idxProd + 1}</span>}<div>{nomeTexto}</div></div>
