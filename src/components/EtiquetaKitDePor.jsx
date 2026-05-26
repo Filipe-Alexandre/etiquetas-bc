@@ -179,18 +179,38 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                 <div className="kit-row" key={index} style={{ padding: '4px 0' }}>
                                     <div className="col-produto" style={{ flexWrap: 'wrap' }}>
                                         {prod && <span className="row-number">{index + 1}</span>}
-                                        <div className="row-controls" style={{ flex: '1 1 100%' }}>
-                                            <input type="number" min="1" value={row.qtd} onChange={(e) => { const n = [...rows]; n[index].qtd = Number(e.target.value); setRows(n); }} className="qtd-input" />
-                                            <select value={row.id} onChange={(e) => { const n = [...rows]; n[index].id = e.target.value; setRows(n); }} className="prod-select" >
-                                                <option value="">Selecione...</option>
-                                                {bancoDeDados && Object.keys(bancoDeDados).map(cat => (
-                                                    <optgroup key={cat} label={cat}>
-                                                        {bancoDeDados[cat].filter(p => p.complemento.toLowerCase().includes(buscaProd) || p.categoria.toLowerCase().includes(buscaProd)).map(p => (
-                                                            <option key={p.id} value={p.id}>{p.complemento} {p.gramatura}</option>
-                                                        ))}
-                                                    </optgroup>
+                                        <div className="row-controls" style={{ flex: '1 1 100%', display: 'flex', gap: '5px' }}>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={row.qtd}
+                                                onChange={(e) => { const n = [...rows]; n[index].qtd = Number(e.target.value); setRows(n); }}
+                                                className="qtd-input"
+                                            />
+
+                                            {/* Campo de Busca Individual */}
+                                            <input
+                                                list={`lista-produtos-${index}`}
+                                                placeholder="Digite o nome do produto..."
+                                                className="prod-select"
+                                                onChange={(e) => {
+                                                    const nomeDigitado = e.target.value;
+                                                    // Encontra o ID baseado no complemento
+                                                    const prodEncontrado = todosProdutos.find(p => p.complemento === nomeDigitado);
+                                                    if (prodEncontrado) {
+                                                        const n = [...rows];
+                                                        n[index].id = prodEncontrado.id;
+                                                        setRows(n);
+                                                    }
+                                                }}
+                                            />
+
+                                            <datalist id={`lista-produtos-${index}`}>
+                                                {todosProdutos.map(p => (
+                                                    <option key={p.id} value={p.complemento}>{p.complemento} - {p.gramatura}</option>
                                                 ))}
-                                            </select>
+                                            </datalist>
+
                                             <button onClick={() => setRows(rows.filter((_, i) => i !== index))} className="btn-remove">✖</button>
                                         </div>
                                     </div>

@@ -21,6 +21,7 @@ export function Sidebar({
 }) {
     const [openCategory, setOpenCategory] = useState(null);
     const categorias = bancoDeDados ? Object.keys(bancoDeDados) : [];
+    const [termoBusca, setTermoBusca] = useState("");
 
     return (
         <aside className="sidebar">
@@ -99,6 +100,16 @@ export function Sidebar({
                 >
                     <i className="fa-solid fa-pen-to-square"></i> CONTROLE DE VALIDADES
                 </button>
+
+                <div className="search-bar-sidebar">
+                    <input
+                        type="text"
+                        placeholder="🔍 Buscar produto..."
+                        value={termoBusca}
+                        onChange={(e) => setTermoBusca(e.target.value)}
+                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
+                    />
+                </div>  
             </div>
 
             {/* --- ACORDION DE PRODUTOS --- */}
@@ -128,16 +139,16 @@ export function Sidebar({
                         )}
                     </div>
                 ))}
-                
+
                 {/* BOTÃO DA MIGRAÇÃO */}
-                <button 
-                    className="btn-action hide-print" 
+                <button
+                    className="btn-action hide-print"
                     onClick={abrirPainelMigracao}
-                    style={{ 
-                        marginTop: '30px', 
-                        background: 'transparent', 
-                        border: '1px dashed #ccc', 
-                        color: '#999', 
+                    style={{
+                        marginTop: '30px',
+                        background: 'transparent',
+                        border: '1px dashed #ccc',
+                        color: '#999',
                         fontSize: '11px',
                         padding: '10px'
                     }}
