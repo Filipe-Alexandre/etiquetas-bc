@@ -15,7 +15,7 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
   const [progresso, setProgresso] = useState(0);
 
   // A senha para acessar o painel (Defina a sua aqui)
-  const SENHA_MESTRE = "123456";
+  const SENHA_MESTRE = "182529";
 
   const verificarSenha = (e) => {
     e.preventDefault();
