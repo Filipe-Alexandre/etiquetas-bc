@@ -14,9 +14,9 @@ import { db } from './data/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true); 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showPrecos, setShowPrecos] = useState(false);
-  
+
   const [bancoDeDados, setBancoDeDados] = useState({});
   const [carregando, setCarregando] = useState(true);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -28,6 +28,8 @@ function App() {
   const [labelType, setLabelType] = useState("NORMAL");
   const [discountType, setDiscountType] = useState('percent');
   const [discountValue, setDiscountValue] = useState(15);
+
+  const [termoBusca, setTermoBusca] = useState("");
 
   const carregarDadosDoFirebase = async () => {
     setCarregando(true);
@@ -51,7 +53,7 @@ function App() {
         }
 
         if (nomeProduto.includes('RECHEADO') && cat !== 'GATO MIA') {
-            cat = 'TABLETE RECHEADO';
+          cat = 'TABLETE RECHEADO';
         }
 
         return {
@@ -111,7 +113,7 @@ function App() {
   }
 
   const todosProdutos = Object.values(bancoDeDados).flat();
-  
+
   // FUNÇÃO NOVA: Adiciona ou remove itens da memória de impressão individual
   const alterarQuantidadeIndividual = (id, delta) => {
     if (delta === 1) {
@@ -158,7 +160,7 @@ function App() {
   const selectAllCategory = (catName) => {
     const idsDaCat = bancoDeDados[catName].map(p => p.id);
     const todosJaSelecionados = idsDaCat.every(id => selectedItems.includes(id));
-    
+
     if (todosJaSelecionados) {
       setSelectedItems(prev => prev.filter(id => !idsDaCat.includes(id)));
     } else {
@@ -167,15 +169,24 @@ function App() {
     }
   };
 
+  const bancoFiltrado = {};
+  Object.keys(bancoDeDados).forEach(cat => {
+    const prods = bancoDeDados[cat].filter(p =>
+      p.complemento.toLowerCase().includes(termoBusca.toLowerCase()) ||
+      p.categoria.toLowerCase().includes(termoBusca.toLowerCase())
+    );
+    if (prods.length > 0) bancoFiltrado[cat] = prods;
+  });
+
   return (
-   <div className={`layout-wrapper ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
-      
+    <div className={`layout-wrapper ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+
       <button className="fab-menu hide-print" onClick={() => setSidebarOpen(!sidebarOpen)}>
         <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
       </button>
 
       {sidebarOpen && <div className="sidebar-overlay hide-print" onClick={() => setSidebarOpen(false)}></div>}
-      
+
       <Sidebar
         selectedItems={selectedItems}
         toggleItem={toggleItem}
@@ -189,10 +200,12 @@ function App() {
         setDiscountType={setDiscountType}
         discountValue={discountValue}
         setDiscountValue={setDiscountValue}
-        bancoDeDados={bancoDeDados}
+        bancoDeDados={bancoFiltrado}
+        termoBusca={termoBusca}
+        setTermoBusca={setTermoBusca}
         sidebarOpen={sidebarOpen}
         abrirPainelAdmin={() => setShowAdmin(true)}
-        abrirPainelPrecos={() => setShowPrecos(true)} 
+        abrirPainelPrecos={() => setShowPrecos(true)}
         abrirPainelMigracao={() => setShowMigracao(true)}
       />
 
@@ -203,11 +216,11 @@ function App() {
 
         <div className="area-impressao">
           {labelType === 'KIT' && (
-              <EtiquetaKit todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
+            <EtiquetaKit todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
           )}
 
           {labelType === 'KIT DE POR' && (
-              <EtiquetaKitDePor todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} discountType={discountType} discountValue={discountValue} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
+            <EtiquetaKitDePor todosProdutos={todosProdutos} bancoDeDados={bancoDeDados} discountType={discountType} discountValue={discountValue} kitsParaImpressao={kitsParaImpressao} setKitsParaImpressao={setKitsParaImpressao} />
           )}
 
           {(labelType === 'NORMAL' || labelType === 'DE POR - AMARELA' || labelType === 'DE POR - BRANCA' || labelType === 'CLUBE') && (
@@ -215,16 +228,16 @@ function App() {
               paginas.map((grupo, idx) => (
                 <div key={idx} className="preview-folha">
                   {grupo.map(produto => (
-                    
+
                     // AQUI ENTRA A ESTRUTURA COM OS BOTÕES FLUTUANTES
                     <div key={produto._printId} style={{ position: 'relative', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
-                      
+
                       <div className="hide-print print-floating-controls">
                         <button className="btn-float-remove" onClick={() => alterarQuantidadeIndividual(produto.id, -1)} title="Remover">
-                            <i className="fa-solid fa-trash"></i>
+                          <i className="fa-solid fa-trash"></i>
                         </button>
                         <button className="btn-float-add" onClick={() => alterarQuantidadeIndividual(produto.id, 1)} title="Duplicar">
-                            +1
+                          +1
                         </button>
                       </div>
 

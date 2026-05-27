@@ -4,6 +4,8 @@ import logo1 from '../assets/logo1.svg';
 
 export function Sidebar({
     bancoDeDados,
+    termoBusca,
+    setTermoBusca,
     selectedItems,
     toggleItem,
     labelType,
@@ -21,7 +23,6 @@ export function Sidebar({
 }) {
     const [openCategory, setOpenCategory] = useState(null);
     const categorias = bancoDeDados ? Object.keys(bancoDeDados) : [];
-    const [termoBusca, setTermoBusca] = useState("");
 
     return (
         <aside className="sidebar">
@@ -109,7 +110,7 @@ export function Sidebar({
                         onChange={(e) => setTermoBusca(e.target.value)}
                         style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc' }}
                     />
-                </div>  
+                </div>
             </div>
 
             {/* --- ACORDION DE PRODUTOS --- */}

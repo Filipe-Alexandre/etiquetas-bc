@@ -191,23 +191,31 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                             {/* Campo de Busca Individual */}
                                             <input
                                                 list={`lista-produtos-${index}`}
-                                                placeholder="Digite o nome do produto..."
+                                                placeholder="Digite o nome..."
                                                 className="prod-select"
+                                                // 1. Mostra a categoria quando já estiver selecionado
+                                                value={prod ? `${prod.categoria} - ${prod.complemento} ${prod.gramatura}`.trim() : ""}
                                                 onChange={(e) => {
-                                                    const nomeDigitado = e.target.value;
-                                                    // Encontra o ID baseado no complemento
-                                                    const prodEncontrado = todosProdutos.find(p => p.complemento === nomeDigitado);
+                                                    const valorDigitado = e.target.value;
+
+                                                    // 2. Busca combinando a categoria junto para não dar erro
+                                                    const prodEncontrado = todosProdutos.find(p =>
+                                                        `${p.categoria} - ${p.complemento} ${p.gramatura}`.trim() === valorDigitado
+                                                    );
+
+                                                    const n = [...rows];
                                                     if (prodEncontrado) {
-                                                        const n = [...rows];
                                                         n[index].id = prodEncontrado.id;
-                                                        setRows(n);
+                                                    } else {
+                                                        n[index].id = "";
                                                     }
+                                                    setRows(n);
                                                 }}
                                             />
 
                                             <datalist id={`lista-produtos-${index}`}>
                                                 {todosProdutos.map(p => (
-                                                    <option key={p.id} value={p.complemento}>{p.complemento} - {p.gramatura}</option>
+                                                    <option key={p.id} value={`${p.categoria} - ${p.complemento} ${p.gramatura}`.trim()} />
                                                 ))}
                                             </datalist>
 
