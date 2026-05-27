@@ -478,7 +478,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [progresso, setProgresso] = useState(0);
 
   // A SENHA PARA DESBLOQUEAR A EDIÇÃO
-  const SENHA_MESTRE = "123456";
+  const SENHA_MESTRE = "182529";
 
   const fechar = () => {
     if (fecharPainel) fecharPainel();
