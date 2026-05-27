@@ -170,11 +170,17 @@ function App() {
   };
 
   const bancoFiltrado = {};
+  const termoLower = termoBusca.toLowerCase().trim();
+
   Object.keys(bancoDeDados).forEach(cat => {
-    const prods = bancoDeDados[cat].filter(p =>
-      p.complemento.toLowerCase().includes(termoBusca.toLowerCase()) ||
-      p.categoria.toLowerCase().includes(termoBusca.toLowerCase())
-    );
+    const prods = bancoDeDados[cat].filter(p => {
+      // Concatena a string exata que usamos no Kit, tudo em minúsculo para a busca não falhar
+      const nomeCompleto = `${p.categoria} ${p.complemento} ${p.gramatura}`.toLowerCase();
+
+      // Retorna verdadeiro se o que o usuário digitou existir dentro dessa string completa
+      return nomeCompleto.includes(termoLower);
+    });
+
     if (prods.length > 0) bancoFiltrado[cat] = prods;
   });
 

@@ -13,7 +13,7 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
     const [qtdTabelas, setQtdTabelas] = useState(1);
     const [qtdEtiquetas, setQtdEtiquetas] = useState(1);
 
-    const [rows, setRows] = useState([{ id: "", qtd: 1 }, { id: "", qtd: 1 }, { id: "", qtd: 1 }]);
+    const [rows, setRows] = useState([{ id: "", qtd: 1, texto: "" }, { id: "", qtd: 1, texto: "" }, { id: "", qtd: 1, texto: "" }]);
 
     const formataPreco = (valor) => {
         if (valor === undefined || valor === null || isNaN(valor)) return '0,00';
@@ -188,26 +188,28 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                                 className="qtd-input"
                                             />
 
-                                            {/* Campo de Busca Individual */}
+                                            {/* Campo de Busca com Auto-seleção Corrigido */}
                                             <input
                                                 list={`lista-produtos-${index}`}
                                                 placeholder="Digite o nome..."
                                                 className="prod-select"
-                                                // 1. Mostra a categoria quando já estiver selecionado
-                                                value={prod ? `${prod.categoria} - ${prod.complemento} ${prod.gramatura}`.trim() : ""}
+                                                value={row.texto !== undefined ? row.texto : (prod ? `${prod.categoria} - ${prod.complemento} ${prod.gramatura}`.trim() : "")}
                                                 onChange={(e) => {
                                                     const valorDigitado = e.target.value;
+                                                    const n = [...rows];
 
-                                                    // 2. Busca combinando a categoria junto para não dar erro
+                                                    // 1. Salva a letra que você acabou de digitar para não apagar do campo
+                                                    n[index].texto = valorDigitado;
+
+                                                    // 2. Verifica se o texto digitado (ou clicado na lista) é um produto válido
                                                     const prodEncontrado = todosProdutos.find(p =>
                                                         `${p.categoria} - ${p.complemento} ${p.gramatura}`.trim() === valorDigitado
                                                     );
 
-                                                    const n = [...rows];
                                                     if (prodEncontrado) {
                                                         n[index].id = prodEncontrado.id;
                                                     } else {
-                                                        n[index].id = "";
+                                                        n[index].id = ""; // Se apagou ou tá digitando, zera o ID
                                                     }
                                                     setRows(n);
                                                 }}
@@ -247,7 +249,7 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                         })}
                     </div>
 
-                    <button className="btn-add-row" onClick={() => setRows([...rows, { id: "", qtd: 1 }])}>+ ADICIONAR PRODUTO</button>
+                    <button className="btn-add-row" onClick={() => setRows([...rows, { id: "", qtd: 1, texto: "" }])}>+ ADICIONAR PRODUTO</button>
 
                     <div className="kit-footer">
                         <div className="kit-barcode-area" style={{ flex: 1, marginRight: '15px' }}>
