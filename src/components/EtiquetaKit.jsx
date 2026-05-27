@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import logo2 from '../assets/logo2.svg';
 import placa from '../assets/placa.svg';
 import { EtiquetaNormal } from './EtiquetaNormal';
+import { EtiquetaDePor } from './EtiquetaDePorAmarela';
 import Barcode from 'react-barcode';
 
 export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, setKitsParaImpressao }) {
-    const [buscaProd, setBuscaProd] = useState("");
     const [kitName, setKitName] = useState("");
     const [barcodeValue, setBarcodeValue] = useState("");
 
@@ -143,8 +143,6 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                     <label style={{ fontWeight: 'bold', fontSize: '10pt', color: 'var(--marrom)', display: 'flex', alignItems: 'center', gap: '8px' }}>Qtd. Etiquetas: <input type="number" min="0" value={qtdEtiquetas} onChange={e => setQtdEtiquetas(Number(e.target.value))} style={{ width: '50px', padding: '6px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '4px' }} /></label>
                 </div>
 
-                <input type="text" className="search-kit-input" placeholder="🔍 BUSCAR E FILTRAR PRODUTOS..." value={buscaProd} onChange={e => setBuscaProd(e.target.value.toLowerCase())} style={{ marginBottom: '15px', background: '#fff' }} />
-
                 <div className="etiqueta kit" style={{ border: '2px dashed var(--laranja)' }}>
                     <div className="kit-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <input type="text" className="kit-name-input" value={kitName} onChange={(e) => setKitName(e.target.value.toUpperCase())} placeholder="NOME DO KIT" style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', flex: 1, minWidth: 0 }} />
@@ -260,10 +258,11 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                 </div>
             </div>
 
-            {paginasA4.map((pagina, idxPagina) => (
+{paginasA4.map((pagina, idxPagina) => (
                 <div key={idxPagina} className="preview-folha" style={{ display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', justifyContent: 'space-between', rowGap: '0.4cm', columnGap: '0' }}>
                     {pagina.map((item, idxItem) => {
                         if (item.tipo === 'tabela') {
+                            const isPromo = item.kit.tipo === 'DEPOR';
                             const kitImpressoTemAlcool = item.kit.produtos.some(r => {
                                 const prod = todosProdutos.find(p => p.id === r.id);
                                 return prod?.maior18 === true;
@@ -271,16 +270,17 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
                             return (
                                 <div key={`print-tab-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '100%', maxWidth: '12cm', margin: '0 auto', pageBreakInside: 'avoid' }}>
-
-                                    <div className="hide-print print-floating-controls" >
+                                    
+                                    <div className="hide-print print-floating-controls">
                                         <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
                                             <i className="fa-solid fa-trash"></i>
                                         </button>
-                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">+1
+                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">
+                                            +1
                                         </button>
                                     </div>
 
-                                    <div className="etiqueta kit">
+                                    <div className={`etiqueta kit ${isPromo ? 'depor-theme' : ''}`}>
                                         <div className="kit-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                             <span className="kit-name-text" style={{ flex: 1 }}>{item.kit.nome}</span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -292,7 +292,11 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                         <div className="kit-body">
                                             {item.kit.produtos.map((row, idxProd) => {
                                                 const prod = todosProdutos.find(p => p.id === row.id);
-                                                const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.categoria + ' ' + prod.complemento + ' ' + prod.gramatura) : '';
+                                                const nomeTexto = prod ? (
+                                                    (row.qtd > 1 ? `${row.qtd}x ` : '') + 
+                                                    (prod.categoria !== 'SEM CATEGORIA' ? `${prod.categoria} ` : '') + 
+                                                    prod.complemento + ' ' + prod.gramatura
+                                                ).trim() : '';
                                                 return (
                                                     <div className="kit-row" key={idxProd} style={{ padding: '4px 0', minHeight: '24px' }}>
                                                         <div className="col-produto">{prod && <span className="row-number">{idxProd + 1}</span>}<div>{nomeTexto}</div></div>
@@ -305,24 +309,43 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                         <div className="kit-footer">
                                             <div className="kit-warning"><span className="icon-alert">!</span><p>Infos nutricionais e alergênicos,<br />consulte a embalagem</p></div>
                                             {item.kit.barcode && <div className="barcode-display"><Barcode value={item.kit.barcode} width={1.2} height={20} fontSize={10} background="#ffffff" margin={1} displayValue={true} /></div>}
-                                            <div className="kit-total-area"><span className="total-label">Total</span><div className="total-box"><span className="moeda-total">R$</span><span className="valor-total">{formataPreco(item.kit.total)}</span></div></div>
+                                            {isPromo ? (
+                                                <div className="kit-total-area depor-mode">
+                                                    <div className="total-de"><span className="texto-de">DE R$</span><span className="valor-de">{formataPreco(item.kit.valorDe)}</span></div>
+                                                    <div className="total-por"><span className="texto-por">POR R$</span><span className="valor-por">{formataPreco(item.kit.valorPor)}</span></div>
+                                                </div>
+                                            ) : (
+                                                <div className="kit-total-area"><span className="total-label">Total</span><div className="total-box"><span className="moeda-total">R$</span><span className="valor-total">{formataPreco(item.kit.total)}</span></div></div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
                             );
                         } else {
+                            const isPromo = item.kit.tipo === 'DEPOR';
+
                             return (
                                 <div key={`print-etiq-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '49%', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
-
+                                    
                                     <div className="hide-print print-floating-controls">
-                                        <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
+                                        <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'etiqueta', -1)} title="Remover">
                                             <i className="fa-solid fa-trash"></i>
                                         </button>
-                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">+1
+                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'etiqueta', 1)} title="Duplicar">
+                                            +1
                                         </button>
                                     </div>
 
-                                    <EtiquetaNormal produto={item.kit.produtoSintetico} />
+                                    {/* BIFURCAÇÃO INTELIGENTE: Desenha a etiqueta exata e trava o desconto matemático */}
+                                    {isPromo ? (
+                                        <EtiquetaDePor 
+                                            produto={item.kit.produtoSintetico} 
+                                            discountType="value" 
+                                            discountValue={item.kit.valorDe - item.kit.valorPor} 
+                                        />
+                                    ) : (
+                                        <EtiquetaNormal produto={item.kit.produtoSintetico} />
+                                    )}
                                 </div>
                             );
                         }

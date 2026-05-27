@@ -60,7 +60,7 @@ export function EtiquetaDePor({ produto, discountType, discountValue }) {
               <img src={placa} alt="+18" style={{ width: '.8cm', height: 'auto', objectFit: 'contain', position: 'absolute', transform: 'translate(2.6cm, -12px)' }} />
             )}
           </div>
-          
+
           <div className="dp-por-preco">
             <span className="dp-reais">{porReais}</span>
             <span className="dp-virgula">,</span>

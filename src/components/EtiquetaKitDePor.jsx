@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import logo2 from '../assets/logo2.svg';
 import placa from '../assets/placa.svg';
 import { EtiquetaDePor } from './EtiquetaDePorAmarela';
+import { EtiquetaNormal } from './EtiquetaNormal';
 import Barcode from 'react-barcode';
 
 export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, discountValue, kitsParaImpressao, setKitsParaImpressao }) {
-    const [buscaProd, setBuscaProd] = useState("");
     const [kitName, setKitName] = useState("");
     const [barcodeValue, setBarcodeValue] = useState("");
 
@@ -159,8 +159,6 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                     <label style={{ fontWeight: 'bold', fontSize: '10pt', color: 'var(--marrom)', display: 'flex', alignItems: 'center', gap: '8px' }}>Qtd. Etiquetas: <input type="number" min="0" value={qtdEtiquetas} onChange={e => setQtdEtiquetas(Number(e.target.value))} style={{ width: '50px', padding: '6px', textAlign: 'center', border: '1px solid #ccc', borderRadius: '4px' }} /></label>
                 </div>
 
-                <input type="text" className="search-kit-input" placeholder="🔍 BUSCAR E FILTRAR PRODUTOS..." value={buscaProd} onChange={e => setBuscaProd(e.target.value.toLowerCase())} style={{ marginBottom: '15px', background: '#fff' }} />
-
                 <div className="etiqueta kit depor-theme" style={{ border: '2px dashed var(--marrom)' }}>
                     <div className="kit-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <input type="text" className="kit-name-input" value={kitName} onChange={(e) => setKitName(e.target.value.toUpperCase())} placeholder="NOME DO KIT PROMO" style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', flex: 1, minWidth: 0 }} />
@@ -269,24 +267,25 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                 </div>
             </div>
 
-            {paginasA4.map((pagina, idxPagina) => (
+{paginasA4.map((pagina, idxPagina) => (
                 <div key={idxPagina} className="preview-folha" style={{ display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', justifyContent: 'space-between', rowGap: '0.4cm', columnGap: '0' }}>
                     {pagina.map((item, idxItem) => {
                         if (item.tipo === 'tabela') {
                             const isPromo = item.kit.tipo === 'DEPOR';
-                            const kitImpressoPromoTemAlcool = item.kit.produtos.some(r => {
+                            const kitImpressoTemAlcool = item.kit.produtos.some(r => {
                                 const prod = todosProdutos.find(p => p.id === r.id);
                                 return prod?.maior18 === true;
                             });
 
                             return (
                                 <div key={`print-tab-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '100%', maxWidth: '12cm', margin: '0 auto', pageBreakInside: 'avoid' }}>
-
+                                    
                                     <div className="hide-print print-floating-controls">
                                         <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
                                             <i className="fa-solid fa-trash"></i>
                                         </button>
-                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">+1
+                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">
+                                            +1
                                         </button>
                                     </div>
 
@@ -295,14 +294,18 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                             <span className="kit-name-text" style={{ flex: 1 }}>{item.kit.nome}</span>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <img src={logo2} alt="Brasil Cacau" className="kit-logo" />
-                                                {kitImpressoPromoTemAlcool && <img src={placa} alt="Proibido menores de 18 anos" style={{ width: '24px', height: 'auto' }} />}
+                                                {kitImpressoTemAlcool && <img src={placa} alt="Proibido menores de 18 anos" style={{ width: '24px', height: 'auto' }} />}
                                             </div>
                                         </div>
                                         <div className="kit-subheader"><div className="col-produto">PRODUTO</div><div className="col-validade text-center">VALIDADE</div><div className="col-preco text-center">PREÇO</div></div>
                                         <div className="kit-body">
                                             {item.kit.produtos.map((row, idxProd) => {
                                                 const prod = todosProdutos.find(p => p.id === row.id);
-                                                const nomeTexto = prod ? ((row.qtd > 1 ? `${row.qtd}x ` : '') + prod.categoria + ' ' + prod.complemento + ' ' + prod.gramatura) : '';
+                                                const nomeTexto = prod ? (
+                                                    (row.qtd > 1 ? `${row.qtd}x ` : '') + 
+                                                    (prod.categoria !== 'SEM CATEGORIA' ? `${prod.categoria} ` : '') + 
+                                                    prod.complemento + ' ' + prod.gramatura
+                                                ).trim() : '';
                                                 return (
                                                     <div className="kit-row" key={idxProd} style={{ padding: '4px 0', minHeight: '24px' }}>
                                                         <div className="col-produto">{prod && <span className="row-number">{idxProd + 1}</span>}<div>{nomeTexto}</div></div>
@@ -328,18 +331,30 @@ export function EtiquetaKitDePor({ todosProdutos, bancoDeDados, discountType, di
                                 </div>
                             );
                         } else {
+                            const isPromo = item.kit.tipo === 'DEPOR';
+
                             return (
                                 <div key={`print-etiq-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '49%', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
-
+                                    
                                     <div className="hide-print print-floating-controls">
-                                        <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
+                                        <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'etiqueta', -1)} title="Remover">
                                             <i className="fa-solid fa-trash"></i>
                                         </button>
-                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', 1)} title="Duplicar">+1
+                                        <button className="btn-float-add" onClick={() => alterarQuantidadeItem(item.kit.id, 'etiqueta', 1)} title="Duplicar">
+                                            +1
                                         </button>
                                     </div>
 
-                                    <EtiquetaDePor produto={item.kit.produtoSintetico} discountType={discountType} discountValue={discountValue} />
+                                    {/* BIFURCAÇÃO INTELIGENTE: Desenha a etiqueta exata e trava o desconto matemático */}
+                                    {isPromo ? (
+                                        <EtiquetaDePor 
+                                            produto={item.kit.produtoSintetico} 
+                                            discountType="value" 
+                                            discountValue={item.kit.valorDe - item.kit.valorPor} 
+                                        />
+                                    ) : (
+                                        <EtiquetaNormal produto={item.kit.produtoSintetico} />
+                                    )}
                                 </div>
                             );
                         }
