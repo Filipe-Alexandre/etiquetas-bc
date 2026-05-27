@@ -703,8 +703,9 @@ export function Migracao({ fecharPainel, recarregarDados }) {
 
   // TELA 2: GERENCIADOR COMPLETO
   const produtosFiltrados = produtosFirebase.filter(p =>
-    p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) ||
-    p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
+  (p.complemento || '').toLowerCase().includes(busca) ||
+  (p.categoria || '').toLowerCase().includes(busca) ||
+  (p.gramatura || '').toLowerCase().includes(busca)
   );
 
   return (
