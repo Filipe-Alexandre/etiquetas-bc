@@ -371,7 +371,7 @@ const categoriasData = [
       { comp: "LAÇO DUPLA FACE", gram: "1 UN", preco: 1.50 },
       { comp: "SACO DECORADO", gram: "1 UN", preco: 1.95 },
       { comp: "SAQUINHO PRESENTE", gram: "1 UN", preco: 3.00 },
-      { comp: "CXARTUCHO P/ TABLETES 90G", gram: "1 UN", preco: 3.00 }
+      { comp: "CXARTUCHO P/ TABLETES 90G", gram: "1 UN", preco: 5.99 }
     ]
   },
   {
