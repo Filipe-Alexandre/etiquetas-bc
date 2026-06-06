@@ -22,8 +22,8 @@ const categoriasData = [
       { comp: "CARTELA DE ADESIVOS NATAL", gram: "1 UN", preco: 1.50 },
       { comp: "CERÂMICA DE FONDUE INVERNO 400ML", gram: "1 UN", preco: 69.90 },
       { comp: "COPO DIA DAS CRIANÇAS 22", gram: "1 UN", preco: 49.90 },
-      { comp: "COPO SNACK AMARELO COPA 2026", gram: "1 UN", preco: 24.99 },
-      { comp: "COPO SNACK LARANJA COPA 2026", gram: "1 UN", preco: 24.99 },
+      { comp: "COPO SNACK AMARELO COPA 2026", gram: "1 UN", preco: 24.90 },
+      { comp: "COPO SNACK LARANJA COPA 2026", gram: "1 UN", preco: 24.90 },
       { comp: "COPO VERÃO", gram: "1 UN", preco: 7.50 },
       { comp: "COPO VERDE VERÃO", gram: "1 UN", preco: 7.50 },
       { comp: "COPO VIDRO NAMORADOS E PAIS 24", gram: "1 UN", preco: 34.90 },
@@ -98,9 +98,9 @@ const categoriasData = [
       { comp: "LINHA DIVERSAS MEDIA", gram: "1 UN", preco: 23.60 },
       { comp: "LINHA DIVERSAS MINI", gram: "1 UN", preco: 16.50 },
       { comp: "LINHA DIVERSAS PEQUENAS", gram: "1 UN", preco: 18.15 },
-      { comp: "LISTRADA AZUL MOBI", gram: "1 UN", preco: 34.90 },
-      { comp: "LISTRADA LARANJA MOBI", gram: "1 UN", preco: 34.90 },
-      { comp: "LISTRADA ROSA MOBI", gram: "1 UN", preco: 34.90 },
+      { comp: "LISTRADA AZUL", gram: "1 UN", preco: 34.90 },
+      { comp: "LISTRADA LARANJA", gram: "1 UN", preco: 34.90 },
+      { comp: "LISTRADA ROSA", gram: "1 UN", preco: 34.90 },
       { comp: "MÃES E NAMORADOS 2022", gram: "1 UN", preco: 30.90 },
       { comp: "MAIS AMOR MAIS PET", gram: "1 UN", preco: 26.90 },
       { comp: "MELHOR PAI 21", gram: "1 UN", preco: 26.90 },
@@ -288,7 +288,6 @@ const categoriasData = [
       { comp: "CAIXA INST M LARANJA 2026", gram: "1 UN", preco: 8.90 },
       { comp: "CAIXA INST P LARANJA 2026", gram: "1 UN", preco: 6.99 },
       { comp: "CAIXA INST PP LARANJA 2026", gram: "1 UN", preco: 2.99 },
-      { comp: "CAIXA LIVRO MN C/ LAÇO", gram: "1 UN", preco: 8.00 },
       { comp: "CAIXA PRESENTE PORTA RETRATO", gram: "1 UN", preco: 21.90 },
       { comp: "CAIXINHA NATAL PP", gram: "1 UN", preco: 2.90 },
       { comp: "CARTÃO PRESENTE", gram: "1 UN", preco: 7.00 },
@@ -297,8 +296,6 @@ const categoriasData = [
       { comp: "CARTUCHO CORAÇÃO MN 24", gram: "1 UN", preco: 4.00 },
       { comp: "CARTUCHO DIVERSOS M", gram: "1 UN", preco: 9.90 },
       { comp: "CARTUCHO ESPECIAL", gram: "1 UN", preco: 8.00 },
-      { comp: "CARTUCHO G NATAL CASA DOCES", gram: "1 UN", preco: 5.15 },
-      { comp: "CARTUCHO G NATAL CASA NEVE", gram: "1 UN", preco: 5.15 },
       { comp: "CARTUCHO INST DINDA 2026", gram: "1 UN", preco: 3.99 },
       { comp: "CARTUCHO M NATAL PINHEIRINHO", gram: "1 UN", preco: 3.90 },
       { comp: "CARTUCHO P NATAL URSINHO C/ VISOR", gram: "1 UN", preco: 3.10 },
@@ -373,7 +370,8 @@ const categoriasData = [
       { comp: "LAÇO CESTA", gram: "1 UN", preco: 3.00 },
       { comp: "LAÇO DUPLA FACE", gram: "1 UN", preco: 1.50 },
       { comp: "SACO DECORADO", gram: "1 UN", preco: 1.95 },
-      { comp: "SAQUINHO PRESENTE", gram: "1 UN", preco: 3.00 }
+      { comp: "SAQUINHO PRESENTE", gram: "1 UN", preco: 3.00 },
+      { comp: "CXARTUCHO P/ TABLETES 90G", gram: "1 UN", preco: 5.99 }
     ]
   },
   {
@@ -478,7 +476,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [progresso, setProgresso] = useState(0);
 
   // A SENHA PARA DESBLOQUEAR A EDIÇÃO
-  const SENHA_MESTRE = "123456";
+  const SENHA_MESTRE = "182529";
 
   const fechar = () => {
     if (fecharPainel) fecharPainel();
@@ -702,10 +700,11 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   }
 
   // TELA 2: GERENCIADOR COMPLETO
-  const produtosFiltrados = produtosFirebase.filter(p =>
-    p.complemento.toLowerCase().includes(buscaVal.toLowerCase()) ||
-    p.categoria.toLowerCase().includes(buscaVal.toLowerCase())
-  );
+const produtosFiltrados = produtosFirebase.filter(p =>
+  (p.complemento || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
+  (p.categoria || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
+  (p.gramatura || '').toLowerCase().includes(buscaVal.toLowerCase())
+);
 
   return (
     <div className="painel-overlay" onClick={fechar}>
