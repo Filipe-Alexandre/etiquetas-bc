@@ -1,41 +1,31 @@
 // src/components/Migracao.jsx
 import React, { useState } from 'react';
 import { db } from '../data/firebaseConfig';
-import { collection, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, deleteDoc, query, where, addDoc } from 'firebase/firestore';
 
 // ==========================================
-// 1. CARGA DE SEGURANÇA (SEUS DADOS ESTÁTICOS)
+// 1. CARGA DE SEGURANÇA (DADOS ESTÁTICOS REVISADOS)
 // ==========================================
 const categoriasData = [
   {
     nome: "ACESSÓRIOS", prefixo: "ace",
     itens: [
       { comp: "APOIO DE PESCOÇO NAMORADOS", gram: "1 UN", preco: 44.90 },
-      { comp: "ÁRVORE DE NATAL BC24", gram: "1 UN", preco: 24.90 },
-      { comp: "BOLINHA DE NATAL BC24", gram: "1 UN", preco: 19.90 },
       { comp: "BOLSA PALHA DIVERSA M", gram: "1 UN", preco: 39.90 },
       { comp: "BOLSA TÉRMICA", gram: "1 UN", preco: 117.75 },
       { comp: "BOLSA TOTE M&N 2026", gram: "1 UN", preco: 59.90 },
       { comp: "BOLSA TRANSPARENTE MN", gram: "1 UN", preco: 29.90 },
       { comp: "BOLSINHA NEUTRA", gram: "1 UN", preco: 49.90 },
-      { comp: "BONECO DE NEVE 21", gram: "1 UN", preco: 34.90 },
-      { comp: "CARTELA DE ADESIVOS NATAL", gram: "1 UN", preco: 1.50 },
       { comp: "CERÂMICA DE FONDUE INVERNO 400ML", gram: "1 UN", preco: 69.90 },
-      { comp: "COPO DIA DAS CRIANÇAS 22", gram: "1 UN", preco: 49.90 },
       { comp: "COPO SNACK AMARELO COPA 2026", gram: "1 UN", preco: 24.90 },
       { comp: "COPO SNACK LARANJA COPA 2026", gram: "1 UN", preco: 24.90 },
       { comp: "COPO VERÃO", gram: "1 UN", preco: 7.50 },
       { comp: "COPO VERDE VERÃO", gram: "1 UN", preco: 7.50 },
-      { comp: "COPO VIDRO NAMORADOS E PAIS 24", gram: "1 UN", preco: 34.90 },
-      { comp: "GORRINHO 21", gram: "1 UN", preco: 17.00 },
       { comp: "KIT MASSINHA DE MODELAR", gram: "1 UN", preco: 29.90 },
-      { comp: "MEIA DE NATAL", gram: "1 UN", preco: 19.90 },
-      { comp: "MEIA NATALINA BRASIL CACAU 2025", gram: "1 UN", preco: 24.90 },
       { comp: "NECESSAIRE LARANJA E ROSA MN", gram: "1 UN", preco: 39.90 },
       { comp: "NECESSAIRE VERMELHA", gram: "1 UN", preco: 29.90 },
       { comp: "POCHETE GATO MIA", gram: "1 UN", preco: 49.90 },
       { comp: "PORCELANA FONDUE CBC", gram: "1 UN", preco: 69.90 },
-      { comp: "PORTA JOIAS NECESSAIRE MN 24", gram: "1 UN", preco: 29.90 },
       { comp: "PORTA TRUFAS CORAÇÃO", gram: "1 UN", preco: 9.90 },
       { comp: "ROSA CAMURÇA CABO ARTIFICIAL", gram: "1 UN", preco: 13.99 }
     ]
@@ -43,7 +33,6 @@ const categoriasData = [
   {
     nome: "ALMOFADA", prefixo: "alm",
     itens: [
-      { comp: "DIA DAS CRIANÇAS 22", gram: "1 UN", preco: 49.90 },
       { comp: "GATO MIA", gram: "1 UN", preco: 49.90 },
       { comp: "UNICÓRNIO", gram: "1 UN", preco: 59.90 }
     ]
@@ -64,7 +53,6 @@ const categoriasData = [
       { comp: "AMARELA LINHA FRASE", gram: "1 UN", preco: 18.15 },
       { comp: "AZUL BIGODE", gram: "1 UN", preco: 24.90 },
       { comp: "AZUL CHUBBY", gram: "1 UN", preco: 45.00 },
-      { comp: "AZUL E PRETA PAI 23", gram: "1 UN", preco: 30.90 },
       { comp: "BR CORAÇÕES", gram: "1 UN", preco: 23.60 },
       { comp: "BRANCA LINHA FRASE", gram: "1 UN", preco: 18.15 },
       { comp: "BRASILIDADES", gram: "1 UN", preco: 30.90 },
@@ -74,20 +62,10 @@ const categoriasData = [
       { comp: "CÔNICA I LOVE YOU", gram: "1 UN", preco: 26.90 },
       { comp: "CÔNICA LOVE E CORAÇÕES", gram: "1 UN", preco: 26.90 },
       { comp: "CORAÇÃO 240ML", gram: "1 UN", preco: 35.90 },
-      { comp: "CORAÇÕES 18", gram: "1 UN", preco: 24.90 },
       { comp: "CORAÇÕES MN", gram: "1 UN", preco: 26.90 },
-      { comp: "DE NATAL LINHA BR", gram: "1 UN", preco: 19.90 },
       { comp: "DESEJO", gram: "1 UN", preco: 26.90 },
-      { comp: "DIA DAS MÃES 21", gram: "1 UN", preco: 26.90 },
-      { comp: "EASY 330ML KISS MENAMORADOS 2016", gram: "1 UN", preco: 26.90 },
-      { comp: "EASY 330ML TE AMOMAES 2016", gram: "1 UN", preco: 26.90 },
-      { comp: "ELO PAI 23", gram: "1 UN", preco: 34.90 },
       { comp: "ELO ROSA E VERDE MN", gram: "1 UN", preco: 34.90 },
-      { comp: "EMPILHÁVEL NAMORADOS 220ML BC 24", gram: "1 UN", preco: 44.90 },
-      { comp: "FELIZ NATAL", gram: "1 UN", preco: 54.90 },
       { comp: "FLAT CAPIVARA", gram: "1 UN", preco: 39.99 },
-      { comp: "FRASE ASA CHOCOLATE BRANCA 2019", gram: "1 UN", preco: 26.90 },
-      { comp: "FRASE LARANJA 2019", gram: "1 UN", preco: 26.90 },
       { comp: "GATO MITSI", gram: "1 UN", preco: 26.90 },
       { comp: "LARANJA FLAT", gram: "1 UN", preco: 39.90 },
       { comp: "LHAMA TRANSPARENTE", gram: "1 UN", preco: 23.60 },
@@ -101,25 +79,16 @@ const categoriasData = [
       { comp: "LISTRADA AZUL", gram: "1 UN", preco: 34.90 },
       { comp: "LISTRADA LARANJA", gram: "1 UN", preco: 34.90 },
       { comp: "LISTRADA ROSA", gram: "1 UN", preco: 34.90 },
-      { comp: "MÃES E NAMORADOS 2022", gram: "1 UN", preco: 30.90 },
       { comp: "MAIS AMOR MAIS PET", gram: "1 UN", preco: 26.90 },
-      { comp: "MELHOR PAI 21", gram: "1 UN", preco: 26.90 },
       { comp: "MOBI ROSA BC", gram: "1 UN", preco: 39.90 },
-      { comp: "NAMORADOS 2020", gram: "1 UN", preco: 26.90 },
-      { comp: "NATAL 350ML BC 24", gram: "1 UN", preco: 39.90 },
-      { comp: "NATAL BENGALA", gram: "1 UN", preco: 45.90 },
-      { comp: "NATALINA 2023", gram: "1 UN", preco: 39.90 },
       { comp: "PAIS", gram: "1 UN", preco: 19.90 },
-      { comp: "PTA PAIS 2019", gram: "1 UN", preco: 19.90 },
       { comp: "ROMÂNTICA BRANCA COM CORAÇÕES", gram: "1 UN", preco: 16.50 },
       { comp: "ROSA CHUBBY", gram: "1 UN", preco: 45.00 },
       { comp: "TE AMO", gram: "1 UN", preco: 24.90 },
       { comp: "UNICÓRNIO", gram: "1 UN", preco: 23.60 },
       { comp: "UNICÓRNIO CORES", gram: "1 UN", preco: 22.90 },
-      { comp: "UNICÓRNIO NATAL ROSA 2019", gram: "1 UN", preco: 26.90 },
       { comp: "VERDE FLAT", gram: "1 UN", preco: 39.90 },
       { comp: "VERDE LINHA FRASE", gram: "1 UN", preco: 18.15 },
-      { comp: "VERDE NATAL 25 BC OXFD", gram: "1 UN", preco: 39.90 },
       { comp: "VM AFETO", gram: "1 UN", preco: 23.60 },
       { comp: "VM CORAÇÃO", gram: "1 UN", preco: 23.60 }
     ]
@@ -158,13 +127,11 @@ const categoriasData = [
       { comp: "DE CORAÇÃO VERMELHA", gram: "1 UN", preco: 44.90 },
       { comp: "DOURADA D 85MM X A 95MM 10UN", gram: "1 UN", preco: 21.90 },
       { comp: "GRANDE", gram: "1 UN", preco: 26.90 },
-      { comp: "NATAL QUADRADA", gram: "1 UN", preco: 19.90 },
       { comp: "OURO REDONDA", gram: "1 UN", preco: 23.90 },
       { comp: "PEQUENA", gram: "1 UN", preco: 19.90 },
       { comp: "REDONDA ALTA MARROM BC", gram: "1 UN", preco: 9.40 },
       { comp: "REDONDA BAIXA PRETA BC", gram: "1 UN", preco: 16.40 },
       { comp: "REDONDA BAIXA VERDE BC", gram: "1 UN", preco: 14.20 },
-      { comp: "REDONDA BOMBONS DE NATAL", gram: "1 UN", preco: 25.90 },
       { comp: "REDONDA LAR METALIZADA", gram: "1 UN", preco: 38.90 },
       { comp: "RETANGULAR LAR METALIZADA", gram: "1 UN", preco: 29.90 }
     ]
@@ -186,9 +153,6 @@ const categoriasData = [
     nome: "PELÚCIA", prefixo: "pel",
     itens: [
       { comp: "BICHO PREGUIÇA CBC", gram: "1 UN", preco: 59.90 },
-      { comp: "BISCOITO NATALINA", gram: "1 UN", preco: 25.80 },
-      { comp: "BONECO DE NEVE BARRIGA", gram: "1 UN", preco: 34.90 },
-      { comp: "BONECO DE NEVE BARRIGA VAZADA", gram: "1 UN", preco: 34.90 },
       { comp: "CACHORRO BOB C/ POTE", gram: "1 UN", preco: 65.90 },
       { comp: "CACHORRO NAMORADOS", gram: "1 UN", preco: 27.90 },
       { comp: "CACHORRO PIRATA BC", gram: "1 UN", preco: 45.90 },
@@ -210,20 +174,14 @@ const categoriasData = [
       { comp: "GRANDE", gram: "1 UN", preco: 65.90 },
       { comp: "HIPOPÓTAMO BRASIL CACAU", gram: "1 UN", preco: 65.90 },
       { comp: "INTERMEDIÁRIAS", gram: "1 UN", preco: 49.90 },
-      { comp: "LEÃOZINHO 21", gram: "1 UN", preco: 59.90 },
       { comp: "LHAMA BC", gram: "1 UN", preco: 69.90 },
       { comp: "MÉDIA", gram: "1 UN", preco: 49.90 },
       { comp: "MEIA BORDADA", gram: "1 UN", preco: 17.00 },
       { comp: "MINI", gram: "1 UN", preco: 35.90 },
-      { comp: "NOEL BOLINHA BOLACHA", gram: "1 UN", preco: 25.80 },
       { comp: "PEQUENAS", gram: "1 UN", preco: 45.90 },
       { comp: "POLVO HUMOR", gram: "1 UN", preco: 38.50 },
       { comp: "PORTA RETRATO", gram: "1 UN", preco: 69.90 },
       { comp: "RAPOSINHA BC", gram: "1 UN", preco: 65.90 },
-      { comp: "RENA BOLSA", gram: "1 UN", preco: 34.90 },
-      { comp: "RENA C/ POTE FELIZ NATAL", gram: "1 UN", preco: 25.80 },
-      { comp: "RENA NATALINA", gram: "1 UN", preco: 34.90 },
-      { comp: "RENA NATALINA DOURADA", gram: "1 UN", preco: 69.90 },
       { comp: "TUBARÃO", gram: "1 UN", preco: 32.90 },
       { comp: "UNICÓRNIO", gram: "1 UN", preco: 32.90 },
       { comp: "UNICÓRNIO BC", gram: "1 UN", preco: 49.90 },
@@ -232,16 +190,11 @@ const categoriasData = [
       { comp: "URSO CORAÇÃO", gram: "1 UN", preco: 32.90 },
       { comp: "URSO CORAÇÃO EU TE AMO MN25", gram: "1 UN", preco: 65.90 },
       { comp: "URSO CORAÇÃO VOCÊ ME COMPLETA MN25", gram: "1 UN", preco: 65.90 },
-      { comp: "URSO FELPUDO MN", gram: "1 UN", preco: 49.90 },
-      { comp: "URSO FELPUDO MN 24", gram: "1 UN", preco: 59.90 },
       { comp: "URSO GRAVATA", gram: "1 UN", preco: 38.50 },
       { comp: "URSO LOUCO POR VOCÊ", gram: "1 UN", preco: 44.90 },
       { comp: "URSO MARROM", gram: "1 UN", preco: 32.90 },
       { comp: "URSO MARROM C/ POTE BC", gram: "1 UN", preco: 65.90 },
-      { comp: "URSO MINI CORAÇÃO MN 24", gram: "1 UN", preco: 35.90 },
       { comp: "URSO NINO C/ POTE", gram: "1 UN", preco: 38.50 },
-      { comp: "URSO NOEL", gram: "1 UN", preco: 53.80 },
-      { comp: "URSO SENTADO MARROM NT BC", gram: "1 UN", preco: 89.90 },
       { comp: "XÍCARA", gram: "1 UN", preco: 49.90 }
     ]
   },
@@ -283,20 +236,14 @@ const categoriasData = [
       { comp: "CAIXA INST P LARANJA 2026", gram: "1 UN", preco: 6.99 },
       { comp: "CAIXA INST PP LARANJA 2026", gram: "1 UN", preco: 2.99 },
       { comp: "CAIXA PRESENTE PORTA RETRATO", gram: "1 UN", preco: 21.90 },
-      { comp: "CAIXINHA NATAL PP", gram: "1 UN", preco: 2.90 },
       { comp: "CARTÃO PRESENTE", gram: "1 UN", preco: 7.00 },
       { comp: "CARTUCHO 3 MINITRUFAS BC", gram: "1 UN", preco: 2.99 },
       { comp: "CARTUCHO C/ VISOR M PEGUE E LEVE 25 BC", gram: "1 UN", preco: 6.99 },
-      { comp: "CARTUCHO CORAÇÃO MN 24", gram: "1 UN", preco: 4.00 },
       { comp: "CARTUCHO DIVERSOS M", gram: "1 UN", preco: 9.90 },
       { comp: "CARTUCHO ESPECIAL", gram: "1 UN", preco: 8.00 },
       { comp: "CARTUCHO INST DINDA 2026", gram: "1 UN", preco: 3.99 },
-      { comp: "CARTUCHO M NATAL PINHEIRINHO", gram: "1 UN", preco: 3.90 },
-      { comp: "CARTUCHO P NATAL URSINHO C/ VISOR", gram: "1 UN", preco: 3.10 },
       { comp: "CARTUCHO ROSAS", gram: "1 UN", preco: 1.10 },
-      { comp: "CARTUCHO TABLETE COM TRUFAS 24", gram: "1 UN", preco: 4.00 },
       { comp: "CARTUCHO TABLETES DATA ESPECIAL", gram: "1 UN", preco: 9.90 },
-      { comp: "CARTUCHO TRUFAS HALLOWEEN 22", gram: "1 UN", preco: 9.99 },
       { comp: "CARTUCHO TRUFAS M M&N 25 BC", gram: "1 UN", preco: 4.90 },
       { comp: "CARTUCHO URSINHO", gram: "1 UN", preco: 4.00 },
       { comp: "CELOFANE", gram: "1 UN", preco: 1.00 },
@@ -323,7 +270,6 @@ const categoriasData = [
       { comp: "CESTA FRALDEIRA BRANCA MÉDIA", gram: "1 UN", preco: 59.90 },
       { comp: "CESTA FRALDEIRA BRANCA PEQUENA", gram: "1 UN", preco: 29.90 },
       { comp: "CESTA FRALDEIRA BRANCA PP", gram: "1 UN", preco: 19.90 },
-      { comp: "CESTA MN 24", gram: "1 UN", preco: 6.50 },
       { comp: "CESTA OVAL DE VIME ESCURECIDO G", gram: "1 UN", preco: 41.00 },
       { comp: "CESTA OVAL DE VIME ESCURECIDO GG", gram: "1 UN", preco: 43.00 },
       { comp: "CESTA OVAL DE VIME ESCURECIDO M", gram: "1 UN", preco: 38.00 },
@@ -348,16 +294,13 @@ const categoriasData = [
       { comp: "CESTA TABOA DIVERSAS G", gram: "1 UN", preco: 80.00 },
       { comp: "CESTA TABOA DIVERSAS M", gram: "1 UN", preco: 70.00 },
       { comp: "CESTA TABOA DIVERSAS P", gram: "1 UN", preco: 55.00 },
-      { comp: "CINTA C/ ELÁSTICO MN BC25", gram: "1 UN", preco: 1.50 },
       { comp: "CINTA M&N26", gram: "1 UN", preco: 1.09 },
       { comp: "EMB BOMBOM MENSAGENS ESPECIAIS", gram: "1 UN", preco: 7.70 },
       { comp: "EMBALAGEM BOQUINHAS BC", gram: "1 UN", preco: 16.90 },
-      { comp: "EMBALAGEM BOTA NATALINA", gram: "1 UN", preco: 12.90 },
       { comp: "EMBALAGEM CORAÇÃO BC", gram: "1 UN", preco: 16.90 },
       { comp: "EMBALAGEM CORAÇÃO NAMORADOS", gram: "1 UN", preco: 11.90 },
       { comp: "EMBALAGEM CORUJA", gram: "1 UN", preco: 12.50 },
       { comp: "EMBALAGEM LIGA DA JUSTIÇA PARA TABLETES", gram: "1 UN", preco: 4.92 },
-      { comp: "EMBALAGEM TRUFA MN 24", gram: "1 UN", preco: 24.90 },
       { comp: "FITA DE CETIM", gram: "1 UN", preco: 7.15 },
       { comp: "LAÇO", gram: "1 UN", preco: 0.50 },
       { comp: "LAÇO CELOFANE", gram: "1 UN", preco: 2.00 },
@@ -444,7 +387,7 @@ categoriasData.forEach(cat => {
       complemento: produto.comp,
       gramatura: produto.gram,
       precoBase: produto.preco,
-      maior18: produto.maior18 || false //
+      maior18: produto.maior18 || false
     });
   });
 });
@@ -529,7 +472,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       const docRef = doc(db, "produtos", produto.id);
       await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
 
-      alert(`Preço atualizado com sucesso!`);
+      alert(`Preço updated com sucesso!`);
 
       setProdutosFirebase(prev =>
         prev.map(p => p.id === produto.id ? { ...p, precoBase: novoPreco } : p)
@@ -621,34 +564,58 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // BOTÃO MÁGICO: SINCRONIZAR A CARGA DE DADOS DO CÓDIGO
+  // BOTÃO MÁGICO: SINCRONIZAR A CARGA DE DADOS DO CÓDIGO (COM UPSERT INTELIGENTE)
   const executarSincronizacaoDaCarga = async () => {
-    if (!window.confirm(`Isso enviará novos itens e preços do código para a nuvem (${todosOsProdutos.length} itens). Deseja continuar?`)) return;
+    if (!window.confirm(`Isso enviará novos itens e atualizará os preços da nuvem (${todosOsProdutos.length} itens). Deseja continuar?`)) return;
 
     setSalvando(true);
     setProgresso(0);
 
     try {
-      for (let i = 0; i < todosOsProdutos.length; i++) {
-        const produto = todosOsProdutos[i];
-        const docRef = doc(db, "produtos", produto.id);
+      const produtosCollection = collection(db, "produtos");
 
-        await setDoc(docRef, {
-          categoria: produto.categoria,
-          complemento: produto.complemento,
-          gramatura: produto.gramatura,
-          precoBase: produto.precoBase,
-          maior18: produto.maior18
-        }, { merge: true });
+      for (let i = 0; i < todosOsProdutos.length; i++) {
+        const itemLocal = todosOsProdutos[i];
+
+        // Procura se o produto já existe pelo NOME exato e GRAMATURA exata
+        const q = query(
+          produtosCollection, 
+          where("complemento", "==", itemLocal.complemento),
+          where("gramatura", "==", itemLocal.gramatura)
+        );
+        
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // SE EXISTE: Protege o banco atualizando apenas preço, categoria e flag maior18
+          const docIdExistente = querySnapshot.docs[0].id;
+          const docRef = doc(db, "produtos", docIdExistente);
+          
+          await setDoc(docRef, {
+            categoria: itemLocal.categoria,
+            precoBase: itemLocal.precoBase,
+            maior18: itemLocal.maior18
+          }, { merge: true });
+          
+        } else {
+          // SE NÃO EXISTE: Cria o documento limpo gerando uma nova ID randômica segura
+          await addDoc(produtosCollection, {
+             categoria: itemLocal.categoria,
+             complemento: itemLocal.complemento,
+             gramatura: itemLocal.gramatura,
+             precoBase: itemLocal.precoBase,
+             maior18: itemLocal.maior18
+          });
+        }
 
         setProgresso(Math.round(((i + 1) / todosOsProdutos.length) * 100));
       }
 
-      alert("Catálogo sincronizado com sucesso!");
+      alert("Catálogo sincronizado com sucesso, sem duplicadas!");
       if (recarregarDados) recarregarDados();
-      carregarProdutosDoBanco(); // Atualiza a tabela na tela
+      carregarProdutosDoBanco(); 
     } catch (error) {
-      console.error("Erro no envio:", error);
+      console.error("Erro na sincronização:", error);
       alert("Erro ao enviar a carga.");
     } finally {
       setSalvando(false);
@@ -694,11 +661,11 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   }
 
   // TELA 2: GERENCIADOR COMPLETO
-const produtosFiltrados = produtosFirebase.filter(p =>
-  (p.complemento || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
-  (p.categoria || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
-  (p.gramatura || '').toLowerCase().includes(buscaVal.toLowerCase())
-);
+  const produtosFiltrados = produtosFirebase.filter(p =>
+    (p.complemento || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
+    (p.categoria || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
+    (p.gramatura || '').toLowerCase().includes(buscaVal.toLowerCase())
+  );
 
   return (
     <div className="painel-overlay" onClick={fechar}>
@@ -710,7 +677,6 @@ const produtosFiltrados = produtosFirebase.filter(p =>
             <h2 style={{ color: 'var(--laranja)', margin: 0 }}>
               <i className="fa-solid fa-server"></i> Gerenciador de Catálogo
             </h2>
-            {/* BOTÃO DA CARGA DE DADOS ESTÁ AQUI EM CIMA AGORA */}
             <button
               onClick={executarSincronizacaoDaCarga}
               disabled={salvando || carregando}
@@ -769,7 +735,6 @@ const produtosFiltrados = produtosFirebase.filter(p =>
                   produtosFiltrados.map(prod => {
                     const valorEditado = precosEditados[prod.id];
                     const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
-
                     const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
 
                     return (
@@ -815,7 +780,6 @@ const produtosFiltrados = produtosFirebase.filter(p =>
                             <span className="btn-texto">{salvandoId === prod.id ? ' SALVANDO...' : ' SALVAR'}</span>
                           </button>
 
-                          {/* BOTÃO DE EXCLUIR */}
                           <button
                             onClick={() => excluirProduto(prod)}
                             style={{

@@ -88,8 +88,45 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
         setKitsParaImpressao([novoKit, ...kitsParaImpressao]);
         setKitName(""); setBarcodeValue(""); setQtdTabelas(1); setQtdEtiquetas(1);
-        setRows([{ id: "", qtd: 1 }, { id: "", qtd: 1 }, { id: "", qtd: 1 }]);
+        setRows([{ id: "", qtd: 1, texto: "" }, { id: "", qtd: 1, texto: "" }, { id: "", qtd: 1, texto: "" }]);
     };
+
+// NOVA FUNÇÃO DE EDIÇÃO DE KIT (COM TRAVA DE SEGURANÇA)
+    const editarKit = (idKit) => {
+        // 1. Verifica se o painel está em uso (tem nome digitado ou algum produto escolhido)
+        const formularioEmUso = kitName.trim() !== "" || rows.some(r => r.id !== "");
+
+        if (formularioEmUso) {
+            const confirma = window.confirm(
+                "ATENÇÃO: Já existe um kit sendo montado ou editado no painel!\n\n" +
+                "Se você continuar, as alterações não salvas serão perdidas.\n" +
+                "Deseja substituir pelo kit selecionado mesmo assim?"
+            );
+            
+            // Se o usuário clicar em "Cancelar", a gente cancela a edição e sobe a tela pra ele salvar
+            if (!confirma) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+        }
+
+        // Se o formulário estava vazio ou o usuário clicou em "OK", o fluxo continua normalmente
+        const kitParaEditar = kitsParaImpressao.find(k => k.id === idKit);
+        if (!kitParaEditar) return;
+
+        setKitName(kitParaEditar.nome);
+        setBarcodeValue(kitParaEditar.barcode || "");
+        setQtdTabelas(kitParaEditar.qtdTabelas);
+        setQtdEtiquetas(kitParaEditar.qtdEtiquetas);
+
+        const produtosRestaurados = kitParaEditar.produtos.map(p => ({ ...p, texto: undefined }));
+        const linhasVazias = Array.from({ length: Math.max(0, 3 - produtosRestaurados.length) }, () => ({ id: "", qtd: 1, texto: "" }));
+        setRows([...produtosRestaurados, ...linhasVazias]);
+
+        setKitsParaImpressao(prev => prev.filter(k => k.id !== idKit));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
 
     // NOVA FUNÇÃO DE CONTROLE DE CÓPIAS
     const alterarQuantidadeItem = (idKit, tipoItem, delta) => {
@@ -145,7 +182,14 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
                 <div className="etiqueta kit" style={{ border: '2px dashed var(--laranja)' }}>
                     <div className="kit-header" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <input type="text" className="kit-name-input" value={kitName} onChange={(e) => setKitName(e.target.value.toUpperCase())} placeholder="NOME DO KIT" style={{ borderBottom: '1px solid rgba(255,255,255,0.5)', flex: 1, minWidth: 0 }} />
+                        <input
+                            type="text"
+                            className="kit-name-input"
+                            value={kitName}
+                            onChange={(e) => setKitName(e.target.value)}
+                            placeholder="NOME DO KIT"
+                            style={{ textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.5)', flex: 1, minWidth: 0 }}
+                        />
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <img src={logo2} alt="Brasil Cacau" className="kit-logo" />
                             {menuMontagemTemAlcool && <img src={placa} alt="Proibido menores de 18 anos" style={{ width: '24px', height: 'auto' }} />}
@@ -174,7 +218,6 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                                 className="qtd-input"
                                             />
 
-                                            {/* Campo de Busca com Auto-seleção Corrigido */}
                                             <input
                                                 list={`lista-produtos-${index}`}
                                                 placeholder="Digite o nome..."
@@ -184,10 +227,8 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                                     const valorDigitado = e.target.value;
                                                     const n = [...rows];
 
-                                                    // 1. Salva a letra que você acabou de digitar para não apagar do campo
                                                     n[index].texto = valorDigitado;
 
-                                                    // 2. Verifica se o texto digitado (ou clicado na lista) é um produto válido
                                                     const prodEncontrado = todosProdutos.find(p =>
                                                         `${p.categoria} - ${p.complemento} ${p.gramatura}`.trim() === valorDigitado
                                                     );
@@ -195,7 +236,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                                     if (prodEncontrado) {
                                                         n[index].id = prodEncontrado.id;
                                                     } else {
-                                                        n[index].id = ""; // Se apagou ou tá digitando, zera o ID
+                                                        n[index].id = "";
                                                     }
                                                     setRows(n);
                                                 }}
@@ -258,7 +299,7 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                 </div>
             </div>
 
-{paginasA4.map((pagina, idxPagina) => (
+            {paginasA4.map((pagina, idxPagina) => (
                 <div key={idxPagina} className="preview-folha" style={{ display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start', justifyContent: 'space-between', rowGap: '0.4cm', columnGap: '0' }}>
                     {pagina.map((item, idxItem) => {
                         if (item.tipo === 'tabela') {
@@ -270,8 +311,11 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
                             return (
                                 <div key={`print-tab-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '100%', maxWidth: '12cm', margin: '0 auto', pageBreakInside: 'avoid' }}>
-                                    
+
                                     <div className="hide-print print-floating-controls">
+                                        <button className="btn-float-edit" onClick={() => editarKit(item.kit.id)} title="Editar">
+                                            <i className="fa-solid fa-pencil"></i>
+                                        </button>
                                         <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'tabela', -1)} title="Remover">
                                             <i className="fa-solid fa-trash"></i>
                                         </button>
@@ -293,8 +337,8 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
                                             {item.kit.produtos.map((row, idxProd) => {
                                                 const prod = todosProdutos.find(p => p.id === row.id);
                                                 const nomeTexto = prod ? (
-                                                    (row.qtd > 1 ? `${row.qtd}x ` : '') + 
-                                                    (prod.categoria !== 'SEM CATEGORIA' ? `${prod.categoria} ` : '') + 
+                                                    (row.qtd > 1 ? `${row.qtd}x ` : '') +
+                                                    (prod.categoria !== 'SEM CATEGORIA' ? `${prod.categoria} ` : '') +
                                                     prod.complemento + ' ' + prod.gramatura
                                                 ).trim() : '';
                                                 return (
@@ -326,8 +370,11 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
                             return (
                                 <div key={`print-etiq-${idxPagina}-${idxItem}`} style={{ position: 'relative', width: '49%', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
-                                    
+
                                     <div className="hide-print print-floating-controls">
+                                        <button className="btn-float-edit" onClick={() => editarKit(item.kit.id)} title="Editar" style={{ backgroundColor: '#2196F3', color: 'white' }}>
+                                            <i className="fa-solid fa-pencil"></i>
+                                        </button>
                                         <button className="btn-float-remove" onClick={() => alterarQuantidadeItem(item.kit.id, 'etiqueta', -1)} title="Remover">
                                             <i className="fa-solid fa-trash"></i>
                                         </button>
@@ -338,10 +385,10 @@ export function EtiquetaKit({ todosProdutos, bancoDeDados, kitsParaImpressao, se
 
                                     {/* BIFURCAÇÃO INTELIGENTE: Desenha a etiqueta exata e trava o desconto matemático */}
                                     {isPromo ? (
-                                        <EtiquetaDePor 
-                                            produto={item.kit.produtoSintetico} 
-                                            discountType="value" 
-                                            discountValue={item.kit.valorDe - item.kit.valorPor} 
+                                        <EtiquetaDePor
+                                            produto={item.kit.produtoSintetico}
+                                            discountType="value"
+                                            discountValue={item.kit.valorDe - item.kit.valorPor}
                                         />
                                     ) : (
                                         <EtiquetaNormal produto={item.kit.produtoSintetico} />

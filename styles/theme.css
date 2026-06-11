@@ -1760,56 +1760,67 @@ body {
   background: #c62828;
 }
 
-/* =========================================================
-   14. CONTROLES FLUTUANTES DA IMPRESSÃO (GRUPO DE BOTÕES)
-========================================================= */
+/* ========================================================
+   CONTROLES FLUTUANTES DA FOLHA DE IMPRESSÃO (GRUPO DE 3)
+======================================================== */
 .print-floating-controls {
   position: absolute;
-  font-size: 8px;
   top: -12px;
   right: 4px;
   display: flex;
   z-index: 10;
   box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-  width: 50px;
+  width: 75px; /* 3 botões de 25px cada */
   text-align: center;
   border-radius: 4px;
-  overflow: hidden; 
+  overflow: hidden; /* Corta as pontas dos botões das extremidades para ficarem redondos */
 }
 
-.btn-float-remove, .btn-float-add {
+/* BASE UNIFICADA PARA OS 3 BOTÕES */
+.btn-float-edit, 
+.btn-float-remove, 
+.btn-float-add {
   border: none;
   color: #fff;
   height: 25px;
+  width: 25px; /* Tamanho exato para ficar um quadrado perfeito */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-weight: bold;
-  transition: background 0.2s;
+  font-size: 11px; /* Ícones do mesmo tamanho */
+  transition: background 0.2s ease;
 }
 
+/* LINHA SEPARADORA (Aplica apenas do 2º botão em diante) */
+.btn-float-remove, 
+.btn-float-add {
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* CORES INDIVIDUAIS E HOVERS */
+
+/* 1. Lápis (Azul) */
+.btn-float-edit {
+  background-color: #2196F3;
+}
+.btn-float-edit:hover {
+  background-color: #1976D2;
+}
+
+/* 2. Lixeira (Vermelho) */
 .btn-float-remove {
   background-color: #e37164;
-  /* padding: 0 12px; */
-  width: 25px;
 }
-
 .btn-float-remove:hover {
   background-color: #c0392b;
 }
 
+/* 3. Duplicar +1 (Verde) */
 .btn-float-add {
-  color: #fff;
-  width: 25px;
   background-color: #73ed79;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
-
 .btn-float-add:hover {
   background-color: #27ae60;
-}
-
-input, select, button, textarea {
-  font-family: inherit;
 }
