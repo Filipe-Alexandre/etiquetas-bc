@@ -393,7 +393,7 @@ categoriasData.forEach(cat => {
 });
 
 // ==========================================
-// 2. PAINEL MESTRE (MIGRAÇÃO + EDIÇÃO + EXCLUSÃO)
+// 2. PAINEL MESTRE (MIGRAÇÃO + CRIAÇÃO + EDIÇÃO COMPLETA)
 // ==========================================
 export function Migracao({ fecharPainel, recarregarDados }) {
   // Estados da Senha
@@ -401,10 +401,9 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [autenticado, setAutenticado] = useState(false);
   const [erroSenha, setErroSenha] = useState(false);
 
-  // Estados da Tabela de Preços
+  // Estados da Tabela e Busca
   const [produtosFirebase, setProdutosFirebase] = useState([]);
   const [precosEditados, setPrecosEditados] = useState({});
-  const [salvandoId, setSalvandoId] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [buscaVal, setBuscaVal] = useState("");
 
@@ -412,7 +411,14 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [salvando, setSalvando] = useState(false);
   const [progresso, setProgresso] = useState(0);
 
-  // A SENHA PARA DESBLOQUEAR A EDIÇÃO
+  // ESTADOS DO FORMULÁRIO SUPERIOR (CRIAÇÃO/EDIÇÃO COMPLETA)
+  const [produtoEmEdicao, setProdutoEmEdicao] = useState(null);
+  const [formCategoria, setFormCategoria] = useState("");
+  const [formComplemento, setFormComplemento] = useState("");
+  const [formGramatura, setFormGramatura] = useState("");
+  const [formPreco, setFormPreco] = useState("");
+  const [salvandoForm, setSalvandoForm] = useState(false);
+
   const SENHA_MESTRE = "182529";
 
   const fechar = () => {
@@ -430,7 +436,6 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // BUSCA OS DADOS DA NUVEM PARA A TABELA
   const carregarProdutosDoBanco = async () => {
     setCarregando(true);
     try {
@@ -452,77 +457,99 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // ===================== AÇÕES DA TABELA =====================
+  const categoriasUnicas = Array.from(new Set(produtosFirebase.map(p => p.categoria))).filter(Boolean).sort();
+
+  const carregarNoFormulario = (produto) => {
+    setProdutoEmEdicao(produto);
+    setFormCategoria(produto.categoria || "");
+    setFormComplemento(produto.complemento || "");
+    setFormGramatura(produto.gramatura || "");
+    setFormPreco(Number(produto.precoBase).toFixed(2).replace('.', ','));
+
+    const formElement = document.getElementById('painel-edicao-mestre');
+    if (formElement) formElement.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const limparFormulario = () => {
+    setProdutoEmEdicao(null);
+    setFormCategoria("");
+    setFormComplemento("");
+    setFormGramatura("");
+    setFormPreco("");
+  };
+
+  // LÓGICA ATUALIZADA: ADICIONA NOVO PRODUTO SE NÃO ESTIVER EDITANDO
+  const salvarProdutoFormulario = async () => {
+    if (!formCategoria || !formComplemento || !formGramatura || !formPreco) {
+      return alert("Por favor, preencha todos os campos!");
+    }
+
+    const precoFinal = parseFloat(formPreco.replace(',', '.'));
+    if (isNaN(precoFinal)) return alert("Digite um preço válido!");
+
+    setSalvandoForm(true);
+    try {
+      if (produtoEmEdicao) {
+        // MODO EDIÇÃO
+        const docRef = doc(db, "produtos", produtoEmEdicao.id);
+        await setDoc(docRef, {
+          categoria: formCategoria.toUpperCase(),
+          complemento: formComplemento.toUpperCase(),
+          gramatura: formGramatura.toUpperCase(),
+          precoBase: precoFinal
+        }, { merge: true });
+        alert("Produto atualizado com sucesso!");
+      } else {
+        // MODO CRIAÇÃO (Adiciona Novo)
+        await addDoc(collection(db, "produtos"), {
+          categoria: formCategoria.toUpperCase(),
+          complemento: formComplemento.toUpperCase(),
+          gramatura: formGramatura.toUpperCase(),
+          precoBase: precoFinal,
+          maior18: false
+        });
+        alert("Novo produto cadastrado com sucesso!");
+      }
+
+      limparFormulario();
+      carregarProdutosDoBanco();
+      if (recarregarDados) recarregarDados();
+    } catch (error) {
+      console.error("Erro ao salvar o produto:", error);
+      alert("Falha ao salvar produto.");
+    } finally {
+      setSalvandoForm(false);
+    }
+  };
 
   const handleChangePreco = (id, valorStr) => {
     let valorFormatado = valorStr.replace(/[^0-9.,]/g, '');
     setPrecosEditados(prev => ({ ...prev, [id]: valorFormatado }));
   };
 
-  // SALVAR INDIVIDUAL
-  const salvarPreco = async (produto) => {
-    const valorEditado = precosEditados[produto.id];
-    if (!valorEditado) return;
-
-    const novoPreco = parseFloat(valorEditado.replace(',', '.'));
-    if (isNaN(novoPreco) || novoPreco === produto.precoBase) return;
-
-    setSalvandoId(produto.id);
-    try {
-      const docRef = doc(db, "produtos", produto.id);
-      await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
-
-      alert(`Preço updated com sucesso!`);
-
-      setProdutosFirebase(prev =>
-        prev.map(p => p.id === produto.id ? { ...p, precoBase: novoPreco } : p)
-      );
-
-      setPrecosEditados(prev => {
-        const newState = { ...prev };
-        delete newState[produto.id];
-        return newState;
-      });
-
-      if (recarregarDados) recarregarDados();
-      fechar();
-    } catch (error) {
-      console.error("Erro ao salvar:", error);
-      alert("Falha ao salvar o preço.");
-    } finally {
-      setSalvandoId(null);
-    }
-  };
-
-  // EXCLUIR INDIVIDUAL
   const excluirProduto = async (produto) => {
-    if (!window.confirm(`ATENÇÃO: Deseja EXCLUIR DEFINITIVAMENTE o produto "${produto.complemento}" do banco de dados?`)) return;
-
+    if (!window.confirm(`ATENÇÃO: Deseja EXCLUIR o produto "${produto.complemento}"?`)) return;
     try {
       await deleteDoc(doc(db, "produtos", produto.id));
-      alert("Produto excluído com sucesso!");
-
+      alert("Produto excluído!");
       setProdutosFirebase(prev => prev.filter(p => p.id !== produto.id));
-
       if (recarregarDados) recarregarDados();
     } catch (error) {
       console.error("Erro ao excluir:", error);
-      alert("Falha ao excluir o produto.");
+      alert("Falha ao excluir.");
     }
   };
 
-  // SALVAR TUDO DA TABELA
   const salvarTudo = async () => {
     const idsEditados = Object.keys(precosEditados).filter(id => {
       const prodOriginal = produtosFirebase.find(p => p.id === id);
       if (!prodOriginal) return false;
-
       const valorNovo = parseFloat(precosEditados[id].replace(',', '.'));
       return !isNaN(valorNovo) && valorNovo !== prodOriginal.precoBase;
     });
 
     if (idsEditados.length === 0) {
-      alert("Nenhum preço foi alterado para salvar.");
+      alert("Nenhum preço foi alterado na tabela rápida.");
       return;
     }
 
@@ -542,29 +569,18 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       }
 
       alert("Todos os preços foram atualizados!");
-
-      setProdutosFirebase(prev =>
-        prev.map(p => {
-          if (precosEditados[p.id]) {
-            return { ...p, precoBase: parseFloat(precosEditados[p.id].replace(',', '.')) };
-          }
-          return p;
-        })
-      );
-
       setPrecosEditados({});
+      carregarProdutosDoBanco();
       if (recarregarDados) recarregarDados();
-      fechar();
     } catch (error) {
       console.error(error);
-      alert("Erro ao atualizar os preços no banco.");
+      alert("Erro ao atualizar os preços.");
     } finally {
       setSalvando(false);
       setProgresso(0);
     }
   };
 
-  // BOTÃO MÁGICO: SINCRONIZAR A CARGA DE DADOS DO CÓDIGO (COM UPSERT INTELIGENTE)
   const executarSincronizacaoDaCarga = async () => {
     if (!window.confirm(`Isso enviará novos itens e atualizará os preços da nuvem (${todosOsProdutos.length} itens). Deseja continuar?`)) return;
 
@@ -577,43 +593,38 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       for (let i = 0; i < todosOsProdutos.length; i++) {
         const itemLocal = todosOsProdutos[i];
 
-        // Procura se o produto já existe pelo NOME exato e GRAMATURA exata
         const q = query(
-          produtosCollection, 
+          produtosCollection,
           where("complemento", "==", itemLocal.complemento),
           where("gramatura", "==", itemLocal.gramatura)
         );
-        
+
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          // SE EXISTE: Protege o banco atualizando apenas preço, categoria e flag maior18
           const docIdExistente = querySnapshot.docs[0].id;
           const docRef = doc(db, "produtos", docIdExistente);
-          
+
           await setDoc(docRef, {
             categoria: itemLocal.categoria,
             precoBase: itemLocal.precoBase,
             maior18: itemLocal.maior18
           }, { merge: true });
-          
         } else {
-          // SE NÃO EXISTE: Cria o documento limpo gerando uma nova ID randômica segura
           await addDoc(produtosCollection, {
-             categoria: itemLocal.categoria,
-             complemento: itemLocal.complemento,
-             gramatura: itemLocal.gramatura,
-             precoBase: itemLocal.precoBase,
-             maior18: itemLocal.maior18
+            categoria: itemLocal.categoria,
+            complemento: itemLocal.complemento,
+            gramatura: itemLocal.gramatura,
+            precoBase: itemLocal.precoBase,
+            maior18: itemLocal.maior18
           });
         }
-
         setProgresso(Math.round(((i + 1) / todosOsProdutos.length) * 100));
       }
 
-      alert("Catálogo sincronizado com sucesso, sem duplicadas!");
+      alert("Catálogo sincronizado com sucesso!");
+      carregarProdutosDoBanco();
       if (recarregarDados) recarregarDados();
-      carregarProdutosDoBanco(); 
     } catch (error) {
       console.error("Erro na sincronização:", error);
       alert("Erro ao enviar a carga.");
@@ -623,23 +634,13 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // ===================== RENDERS =====================
-
-  // TELA 1: SENHA
   if (!autenticado) {
     return (
       <div className="painel-overlay" onClick={fechar}>
         <div className="painel-modal modal-senha" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '350px', height: 'auto', minHeight: 'auto', position: 'relative' }}>
-
           <button className="btn-fechar-absoluto" onClick={fechar}>✖</button>
-
-          <h2 style={{ color: 'var(--marrom)', textAlign: 'center', marginBottom: '20px' }}>
-            <i className="fa-solid fa-lock"></i> Acesso Restrito
-          </h2>
-          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px', fontSize: '12px' }}>
-            Digite a senha para gerenciar os preços do banco de dados.
-          </p>
-
+          <h2 style={{ color: 'var(--marrom)', textAlign: 'center', marginBottom: '20px' }}><i className="fa-solid fa-lock"></i> Acesso Restrito</h2>
+          <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px', fontSize: '12px' }}>Digite a senha para gerenciar os preços do banco de dados.</p>
           <form onSubmit={verificarSenha} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <input
               type="password"
@@ -650,17 +651,13 @@ export function Migracao({ fecharPainel, recarregarDados }) {
               style={{ padding: '12px', borderRadius: '6px', border: `2px solid ${erroSenha ? 'red' : 'var(--laranja)'}`, fontFamily: 'var(--bold)', textAlign: 'center', fontSize: '18px', outline: 'none' }}
             />
             {erroSenha && <span style={{ color: 'red', fontSize: '11px', textAlign: 'center' }}>Senha incorreta!</span>}
-
-            <button type="submit" style={{ background: 'var(--laranja)', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--bold)' }}>
-              DESBLOQUEAR
-            </button>
+            <button type="submit" style={{ background: 'var(--laranja)', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer', fontFamily: 'var(--bold)' }}>DESBLOQUEAR</button>
           </form>
         </div>
       </div>
     );
   }
 
-  // TELA 2: GERENCIADOR COMPLETO
   const produtosFiltrados = produtosFirebase.filter(p =>
     (p.complemento || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
     (p.categoria || '').toLowerCase().includes(buscaVal.toLowerCase()) ||
@@ -669,43 +666,156 @@ export function Migracao({ fecharPainel, recarregarDados }) {
 
   return (
     <div className="painel-overlay" onClick={fechar}>
-      <div className="painel-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="painel-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '1000px' }}>
 
         {/* HEADER */}
-        <div className="painel-header">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        <div className="painel-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <h2 style={{ color: 'var(--laranja)', margin: 0 }}>
-              <i className="fa-solid fa-server"></i> Gerenciador de Catálogo
+              <i className="fa-solid fa-server"></i> GERENCIADOR DE CATÁLOGO
             </h2>
+            {/* BOTÃO ENVIAR CARGA ROBUSTO E CINZA */}
             <button
+              className={salvando ? 'loading' : ''}
               onClick={executarSincronizacaoDaCarga}
               disabled={salvando || carregando}
-              style={{ background: 'none', border: 'none', color: '#999', fontSize: '10px', fontWeight: 'bold', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+              style={{
+                margin: 0,
+                padding: '8px 15px',
+                fontWeight: 'bold',
+                fontSize: '11px',
+                backgroundColor: '#e2e2e2',
+                color: '#777777',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+                width: 'fit-content'
+              }}
             >
-              <i className="fa-solid fa-cloud-arrow-up"></i> ENVIAR CARGA PADRÃO DO CÓDIGO
+              {salvando && <div className="progress-fill" style={{ width: `${progresso}%`, background: 'rgba(0,0,0,0.15)', position: 'absolute', top: 0, left: 0, bottom: 0, transition: 'width 0.2s' }}></div>}
+              <span className="btn-content" style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className={`fa-solid ${salvando ? 'fa-sync fa-spin' : 'fa-cloud-arrow-up'}`}></i>
+                {salvando ? ` SALVANDO CARGA ${progresso}%` : 'ENVIAR CARGA PADRÃO DO CÓDIGO'}
+              </span>
             </button>
           </div>
 
-          <div className="painel-controls">
+          <div className="painel-controls" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <input
               type="text"
               className="input-busca-painel"
               placeholder="🔍 Buscar produto..."
               value={buscaVal}
               onChange={(e) => setBuscaVal(e.target.value)}
+              style={{ minWidth: '200px' }}
             />
-
-            <button
-              className="btn-salvar-tudo"
-              onClick={salvarTudo}
-              disabled={salvando || carregando}
-            >
-              {salvando ? `⏳ SALVANDO... ${progresso}%` : '💾 SALVAR TUDO'}
+            {/* SALVAR LOTE - VERDE */}
+            <button onClick={salvarTudo} disabled={salvando || carregando} style={{ margin: 0, height: '42px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', padding: '0 15px', cursor: 'pointer', fontWeight: 'bold' }}>
+              {salvando ? `⏳ SALVANDO...` : '💾 SALVAR LOTE'}
             </button>
+            <button className="btn-fechar-painel" onClick={fechar} disabled={salvando} style={{ height: '42px' }}>✖ FECHAR</button>
+          </div>
+        </div>
 
-            <button className="btn-fechar-painel" onClick={fechar} disabled={salvando}>
-              ✖ FECHAR
-            </button>
+{/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO COMPLETA (INLINE E RESPONSIVO) */}
+        <div id="painel-edicao-mestre" className="hide-print" style={{ 
+          background: produtoEmEdicao ? '#e3f2fd' : '#f8f9fa', 
+          padding: '12px 20px', 
+          borderRadius: '8px', 
+          border: `2px solid ${produtoEmEdicao ? '#03A9F4' : '#ddd'}`, 
+          marginBottom: '25px',
+          transition: 'all 0.3s ease'
+        }}>
+          {/* TRAVA REMOVIDA AQUI: O formulário agora está sempre liberado para uso */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
+            
+            {/* Título Inline */}
+            <div style={{ flex: '1 1 100%', marginBottom: '-4px' }}>
+               <h3 style={{ margin: 0, color: produtoEmEdicao ? '#0288D1' : 'var(--marrom)', fontSize: '11pt', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {produtoEmEdicao ? (
+                  <><i className="fa-solid fa-pen-to-square"></i> Editando: {produtoEmEdicao.complemento}</>
+                ) : (
+                  <><i className="fa-solid fa-circle-plus"></i> Cadastrar Novo Produto</>
+                )}
+              </h3>
+            </div>
+
+            <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>CATEGORIA</label>
+              <select 
+                value={formCategoria} 
+                onChange={e => setFormCategoria(e.target.value)} 
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none', height: '34px', fontSize: '12px' }}
+              >
+                <option value="">Selecione...</option>
+                {categoriasUnicas.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ flex: '2 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>NOME / COMPLEMENTO</label>
+              <input 
+                type="text" 
+                value={formComplemento} 
+                onChange={e => setFormComplemento(e.target.value)} 
+                placeholder="Ex: TABLETE AO LEITE"
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>GRAMATURA</label>
+              <input 
+                type="text" 
+                value={formGramatura} 
+                onChange={e => setFormGramatura(e.target.value)} 
+                placeholder="Ex: 90g ou 1 UN"
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>PREÇO (R$)</label>
+              <input 
+                type="text" 
+                value={formPreco} 
+                onChange={(e) => {
+                  let valor = e.target.value.replace(/\D/g, '');
+                  if (!valor) valor = '0';
+                  setFormPreco((Number(valor) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                }}
+                placeholder="0,00"
+                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', outline: 'none', fontWeight: 'bold', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {/* BOTÕES INLINE (Ícones dinâmicos) */}
+            <div style={{ display: 'flex', gap: '6px', flex: '0 0 auto' }}>
+              <button 
+                onClick={salvarProdutoFormulario} 
+                disabled={salvandoForm}
+                title={produtoEmEdicao ? "Salvar Alterações" : "Adicionar Novo Produto"}
+                style={{ background: '#4CAF50', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
+              >
+                {salvandoForm ? (
+                  <i className="fa-solid fa-spinner fa-spin"></i>
+                ) : (
+                  produtoEmEdicao ? <i className="fa-solid fa-floppy-disk"></i> : <i className="fa-solid fa-plus"></i>
+                )}
+              </button>
+              
+              <button 
+                onClick={limparFormulario}
+                title="Limpar formulário / Cancelar"
+                style={{ background: '#f44336', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -722,41 +832,38 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                   <th>CATEGORIA</th>
                   <th>PRODUTO</th>
                   <th style={{ textAlign: 'center' }}>PREÇO ATUAL</th>
-                  <th style={{ textAlign: 'center' }}>NOVO PREÇO (R$)</th>
+                  <th style={{ textAlign: 'center' }}>EDIÇÃO RÁPIDA (R$)</th>
                   <th style={{ textAlign: 'center' }}>AÇÕES</th>
                 </tr>
               </thead>
               <tbody>
                 {produtosFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Nenhum produto encontrado.</td>
-                  </tr>
+                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Nenhum produto encontrado.</td></tr>
                 ) : (
                   produtosFiltrados.map(prod => {
                     const valorEditado = precosEditados[prod.id];
                     const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
                     const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
+                    const isEditando = produtoEmEdicao?.id === prod.id;
 
                     return (
-                      <tr key={prod.id} className="validades-tr linha-normal">
-                        <td className="col-cat">
-                          <b>{prod.categoria}</b>
-                        </td>
+                      <tr key={prod.id} className="validades-tr linha-normal" style={{ background: isEditando ? '#e3f2fd' : 'transparent', transition: 'background 0.3s' }}>
+                        <td className="col-cat" style={{ verticalAlign: 'middle' }}><b>{prod.categoria}</b></td>
 
-                        <td className="col-prod">
-                          <div className="prod-nome">
+                        <td className="col-prod" style={{ verticalAlign: 'middle' }}>
+                          <div className="prod-nome" style={{ fontWeight: isEditando ? 'bold' : 'normal' }}>
                             {prod.complemento} {prod.gramatura}
-                            {prod.maior18 ? <span style={{ color: 'red', marginLeft: '5px', fontSize: '10px' }}> (+18)</span> : ''}
+                            {prod.maior18 && <span style={{ color: 'red', marginLeft: '5px', fontSize: '10px' }}> (+18)</span>}
                           </div>
                           <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
                         </td>
 
-                        <td className="col-val-atual" style={{ textAlign: 'center' }}>
+                        <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                           <span className="mobile-label">Preço Atual:</span>
                           <span style={{ fontWeight: '900', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
                         </td>
 
-                        <td className="col-nova-val" style={{ textAlign: 'center' }}>
+                        <td className="col-nova-val" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                           <span className="mobile-label">Novo Preço:</span>
                           <input
                             type="text"
@@ -764,28 +871,37 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                             placeholder={precoAtualFormat}
                             value={valorEditado !== undefined ? valorEditado : ''}
                             onChange={(e) => handleChangePreco(prod.id, e.target.value)}
-                            style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444' }}
+                            style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444', width: '90px' }}
                           />
                         </td>
 
-                        <td className="col-acao" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <td className="col-acao" style={{ display: 'flex', gap: '8px', justifyContent: 'center', verticalAlign: 'middle' }}>
+                          {/* BOTÃO AZUL PARA EDITAR COMPLETO */}
                           <button
-                            className="btn-salvar-ind"
-                            onClick={() => salvarPreco(prod)}
-                            disabled={!temAlteracao || salvandoId === prod.id}
-                            style={{ opacity: (!temAlteracao || salvandoId === prod.id) ? 0.5 : 1 }}
-                            title="Salvar Novo Preço"
+                            onClick={() => carregarNoFormulario(prod)}
+                            style={{
+                              background: isEditando ? '#0288D1' : '#03A9F4',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '8px 12px',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              transition: 'all 0.2s'
+                            }}
+                            title="Editar Todos os Campos"
                           >
-                            <i className={`fa-solid ${salvandoId === prod.id ? 'fa-spinner fa-spin' : 'fa-floppy-disk'}`}></i>
-                            <span className="btn-texto">{salvandoId === prod.id ? ' SALVANDO...' : ' SALVAR'}</span>
+                            <i className="fa-solid fa-pencil"></i> EDITAR
                           </button>
 
+                          {/* BOTÃO VERMELHO PARA EXCLUIR */}
                           <button
                             onClick={() => excluirProduto(prod)}
-                            style={{
-                              background: '#fee', color: 'red', border: 'none',
-                              padding: '8px 12px', borderRadius: '4px', cursor: 'pointer'
-                            }}
+                            style={{ background: '#F44336', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
                             title="Excluir Produto"
                           >
                             <i className="fa-solid fa-trash-can"></i>
