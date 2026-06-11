@@ -1824,3 +1824,54 @@ body {
 .btn-float-add:hover {
   background-color: #27ae60;
 }
+
+
+/* ========================================================
+   AJUSTES DE RESPONSIVIDADE E ROLAGEM (PAINEL MESTRE)
+======================================================== */
+
+/* 1. Destrava a rolagem do Painel Modal */
+.painel-modal {
+  max-height: 92vh; /* Impede o modal de ser maior que a tela */
+  overflow-y: auto !important; /* Força a barra de rolagem vertical */
+  -webkit-overflow-scrolling: touch; /* Deixa a rolagem suave no iPhone */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 2. Garante que a tabela tenha seu próprio espaço */
+.table-responsive {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 250px;
+}
+
+/* 3. Empilha o formulário perfeitamente no celular */
+@media (max-width: 768px) {
+  /* Altera a direção do container principal do formulário para coluna */
+  #painel-edicao-mestre > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  /* Faz todas as divs dos inputs ocuparem 100% da largura */
+  #painel-edicao-mestre > div > div {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+
+  /* Mantém a div dos botões lado a lado e aumenta a área de toque */
+  #painel-edicao-mestre > div > div:last-child {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    margin-top: 5px;
+  }
+
+  /* Deixa os botões (Salvar/Cancelar) maiores para o toque do dedo */
+  #painel-edicao-mestre > div > div:last-child button {
+    flex: 1 !important;
+    height: 45px !important;
+    font-size: 18px !important;
+  }
+}

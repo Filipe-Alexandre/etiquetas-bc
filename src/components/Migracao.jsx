@@ -417,7 +417,9 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [formComplemento, setFormComplemento] = useState("");
   const [formGramatura, setFormGramatura] = useState("");
   const [formPreco, setFormPreco] = useState("");
+
   const [salvandoForm, setSalvandoForm] = useState(false);
+  const [formAberto, setFormAberto] = useState(false); // NOVO ESTADO DA SANFONA
 
   const SENHA_MESTRE = "182529";
 
@@ -466,8 +468,14 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     setFormGramatura(produto.gramatura || "");
     setFormPreco(Number(produto.precoBase).toFixed(2).replace('.', ','));
 
-    const formElement = document.getElementById('painel-edicao-mestre');
-    if (formElement) formElement.scrollIntoView({ behavior: 'smooth' });
+    // Abre a janela de edição
+    setFormAberto(true);
+
+    // Dá um pequeno atraso para o React renderizar a janela aberta antes de rolar
+    setTimeout(() => {
+      const formElement = document.getElementById('painel-edicao-mestre');
+      if (formElement) formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const limparFormulario = () => {
@@ -476,6 +484,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     setFormComplemento("");
     setFormGramatura("");
     setFormPreco("");
+    setFormAberto(false); // Fecha a janela ao cancelar
   };
 
   // LÓGICA ATUALIZADA: ADICIONA NOVO PRODUTO SE NÃO ESTIVER EDITANDO
@@ -484,7 +493,10 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       return alert("Por favor, preencha todos os campos!");
     }
 
-    const precoFinal = parseFloat(formPreco.replace(',', '.'));
+    // Limpa a formatação BR para salvar no banco (1.250,00 -> 1250.00)
+    const precoLimpo = formPreco.replace(/\./g, '').replace(',', '.');
+    const precoFinal = parseFloat(precoLimpo);
+
     if (isNaN(precoFinal)) return alert("Digite um preço válido!");
 
     setSalvandoForm(true);
@@ -544,7 +556,10 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     const idsEditados = Object.keys(precosEditados).filter(id => {
       const prodOriginal = produtosFirebase.find(p => p.id === id);
       if (!prodOriginal) return false;
-      const valorNovo = parseFloat(precosEditados[id].replace(',', '.'));
+
+      const valorNovoFormatado = precosEditados[id].replace(/\./g, '').replace(',', '.');
+      const valorNovo = parseFloat(valorNovoFormatado);
+
       return !isNaN(valorNovo) && valorNovo !== prodOriginal.precoBase;
     });
 
@@ -561,7 +576,8 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     try {
       for (let i = 0; i < idsEditados.length; i++) {
         const id = idsEditados[i];
-        const novoPreco = parseFloat(precosEditados[id].replace(',', '.'));
+        const valorNovoFormatado = precosEditados[id].replace(/\./g, '').replace(',', '.');
+        const novoPreco = parseFloat(valorNovoFormatado);
         const docRef = doc(db, "produtos", id);
 
         await setDoc(docRef, { precoBase: novoPreco }, { merge: true });
@@ -702,218 +718,275 @@ export function Migracao({ fecharPainel, recarregarDados }) {
             </button>
           </div>
 
-          <div className="painel-controls" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <div className="painel-controls" style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '8px',
+            width: '100%',
+            marginTop: '10px' // Ajuste conforme necessário
+          }}>
+            {/* Linha 1: Input de Busca (ocupa as 2 colunas) */}
             <input
               type="text"
               className="input-busca-painel"
               placeholder="🔍 Buscar produto..."
               value={buscaVal}
               onChange={(e) => setBuscaVal(e.target.value)}
-              style={{ minWidth: '200px' }}
+              style={{
+                gridColumn: 'span 2',
+                padding: '10px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                boxSizing: 'border-box',
+                height: '40px' // Altura padrão do input
+              }}
             />
-            {/* SALVAR LOTE - VERDE */}
-            <button onClick={salvarTudo} disabled={salvando || carregando} style={{ margin: 0, height: '42px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', padding: '0 15px', cursor: 'pointer', fontWeight: 'bold' }}>
+
+            {/* Linha 2: Salvar e Fechar - Botões com 40px fixos */}
+            <button
+              onClick={salvarTudo}
+              disabled={salvando || carregando}
+              style={{
+                height: '40px',
+                background: '#4CAF50',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
               {salvando ? `⏳ SALVANDO...` : '💾 SALVAR LOTE'}
             </button>
-            <button className="btn-fechar-painel" onClick={fechar} disabled={salvando} style={{ height: '42px' }}>✖ FECHAR</button>
-          </div>
-        </div>
 
-{/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO COMPLETA (INLINE E RESPONSIVO) */}
-        <div id="painel-edicao-mestre" className="hide-print" style={{ 
-          background: produtoEmEdicao ? '#e3f2fd' : '#f8f9fa', 
-          padding: '12px 20px', 
-          borderRadius: '8px', 
-          border: `2px solid ${produtoEmEdicao ? '#03A9F4' : '#ddd'}`, 
-          marginBottom: '25px',
-          transition: 'all 0.3s ease'
-        }}>
-          {/* TRAVA REMOVIDA AQUI: O formulário agora está sempre liberado para uso */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-            
-            {/* Título Inline */}
-            <div style={{ flex: '1 1 100%', marginBottom: '-4px' }}>
-               <h3 style={{ margin: 0, color: produtoEmEdicao ? '#0288D1' : 'var(--marrom)', fontSize: '11pt', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              className="btn-fechar-painel"
+              onClick={fechar}
+              disabled={salvando}
+              style={{ height: '40px', margin: 0 }}
+            >
+              ✖ FECHAR
+            </button>
+          </div>
+
+          {/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO COMPLETA (TIPO ACORDEÃO) */}
+          <div id="painel-edicao-mestre" className="hide-print" style={{
+            background: produtoEmEdicao ? '#e3f2fd' : '#f8f9fa',
+            borderRadius: '8px',
+            border: `1px solid ${produtoEmEdicao ? '#03A9F4' : '#ddd'}`,
+            marginBottom: '10px',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+            overflow: 'visible'
+          }}>
+            {/* CABEÇALHO CLICÁVEL COM CARA DE BOTÃO (TOGGLE) */}
+            <div
+              onClick={() => setFormAberto(!formAberto)}
+              style={{
+                padding: '15px 20px',
+                width: '100%',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                userSelect: 'none',
+                backgroundColor: produtoEmEdicao ? '#0288D1' : '#ffffff',
+                color: produtoEmEdicao ? '#ffffff' : 'var(--marrom)',
+                borderRadius: formAberto ? '8px 8px 0 0' : '8px',
+                borderBottom: formAberto ? `1px solid ${produtoEmEdicao ? '#0288D1' : '#ddd'}` : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <h3 style={{ margin: 0, width: '100%', fontSize: '11pt', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {produtoEmEdicao ? (
-                  <><i className="fa-solid fa-pen-to-square"></i> Editando: {produtoEmEdicao.complemento}</>
+                  <><i className="fa-solid fa-pen-to-square"></i> EDITANDO PRODUTO: {produtoEmEdicao.complemento}</>
                 ) : (
-                  <><i className="fa-solid fa-circle-plus"></i> Cadastrar Novo Produto</>
+                  <><i className="fa-solid fa-circle-plus" style={{ color: 'var(--laranja)' }}></i> CADASTRAR NOVO PRODUTO</>
                 )}
               </h3>
+              <i className={`fa-solid fa-chevron-${formAberto ? 'up' : 'down'}`} style={{ transition: 'transform 0.3s' }}></i>
             </div>
 
-            <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>CATEGORIA</label>
-              <select 
-                value={formCategoria} 
-                onChange={e => setFormCategoria(e.target.value)} 
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none', height: '34px', fontSize: '12px' }}
-              >
-                <option value="">Selecione...</option>
-                {categoriasUnicas.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+            {/* ÁREA EXPANSÍVEL (SÓ APARECE SE formAberto FOR TRUE) */}
+            {formAberto && (
+              <div style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
 
-            <div style={{ flex: '2 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>NOME / COMPLEMENTO</label>
-              <input 
-                type="text" 
-                value={formComplemento} 
-                onChange={e => setFormComplemento(e.target.value)} 
-                placeholder="Ex: TABLETE AO LEITE"
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
+                  <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>CATEGORIA</label>
+                    <select
+                      value={formCategoria}
+                      onChange={e => setFormCategoria(e.target.value)}
+                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none', height: '34px', fontSize: '12px' }}
+                    >
+                      <option value="">Selecione...</option>
+                      {categoriasUnicas.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
 
-            <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>GRAMATURA</label>
-              <input 
-                type="text" 
-                value={formGramatura} 
-                onChange={e => setFormGramatura(e.target.value)} 
-                placeholder="Ex: 90g ou 1 UN"
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
+                  <div style={{ flex: '2 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>NOME / COMPLEMENTO</label>
+                    <input
+                      type="text"
+                      value={formComplemento}
+                      onChange={e => setFormComplemento(e.target.value)}
+                      placeholder="Ex: TABLETE AO LEITE"
+                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
+                    />
+                  </div>
 
-            <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>PREÇO (R$)</label>
-              <input 
-                type="text" 
-                value={formPreco} 
-                onChange={(e) => {
-                  let valor = e.target.value.replace(/\D/g, '');
-                  if (!valor) valor = '0';
-                  setFormPreco((Number(valor) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                }}
-                placeholder="0,00"
-                style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', outline: 'none', fontWeight: 'bold', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
-              />
-            </div>
+                  <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>GRAMATURA</label>
+                    <input
+                      type="text"
+                      value={formGramatura}
+                      onChange={e => setFormGramatura(e.target.value)}
+                      placeholder="Ex: 90g ou 1 UN"
+                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
+                    />
+                  </div>
 
-            {/* BOTÕES INLINE (Ícones dinâmicos) */}
-            <div style={{ display: 'flex', gap: '6px', flex: '0 0 auto' }}>
-              <button 
-                onClick={salvarProdutoFormulario} 
-                disabled={salvandoForm}
-                title={produtoEmEdicao ? "Salvar Alterações" : "Adicionar Novo Produto"}
-                style={{ background: '#4CAF50', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
-              >
-                {salvandoForm ? (
-                  <i className="fa-solid fa-spinner fa-spin"></i>
-                ) : (
-                  produtoEmEdicao ? <i className="fa-solid fa-floppy-disk"></i> : <i className="fa-solid fa-plus"></i>
-                )}
-              </button>
-              
-              <button 
-                onClick={limparFormulario}
-                title="Limpar formulário / Cancelar"
-                style={{ background: '#f44336', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
+                  <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>PREÇO (R$)</label>
+                    <input
+                      type="text"
+                      value={formPreco}
+                      onChange={(e) => {
+                        let valor = e.target.value.replace(/\D/g, '');
+                        if (!valor) valor = '0';
+                        setFormPreco((Number(valor) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                      }}
+                      placeholder="0,00"
+                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', outline: 'none', fontWeight: 'bold', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  {/* BOTÕES INLINE (Ícones dinâmicos) */}
+                  <div style={{ display: 'flex', gap: '6px', flex: '0 0 auto' }}>
+                    <button
+                      onClick={salvarProdutoFormulario}
+                      disabled={salvandoForm}
+                      title={produtoEmEdicao ? "Salvar Alterações" : "Adicionar Novo Produto"}
+                      style={{ background: '#4CAF50', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
+                    >
+                      {salvandoForm ? (
+                        <i className="fa-solid fa-spinner fa-spin"></i>
+                      ) : (
+                        produtoEmEdicao ? <i className="fa-solid fa-floppy-disk"></i> : <i className="fa-solid fa-plus"></i>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={limparFormulario}
+                      title="Limpar formulário / Fechar Aba"
+                      style={{ background: '#f44336', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* TABELA DE DADOS DO FIREBASE */}
-        <div className="table-responsive">
-          {carregando ? (
-            <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
-              <h3><i className="fa-solid fa-spinner fa-spin"></i> Carregando preços do servidor...</h3>
-            </div>
-          ) : (
-            <table className="validades-table">
-              <thead>
-                <tr>
-                  <th>CATEGORIA</th>
-                  <th>PRODUTO</th>
-                  <th style={{ textAlign: 'center' }}>PREÇO ATUAL</th>
-                  <th style={{ textAlign: 'center' }}>EDIÇÃO RÁPIDA (R$)</th>
-                  <th style={{ textAlign: 'center' }}>AÇÕES</th>
-                </tr>
-              </thead>
-              <tbody>
-                {produtosFiltrados.length === 0 ? (
-                  <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Nenhum produto encontrado.</td></tr>
-                ) : (
-                  produtosFiltrados.map(prod => {
-                    const valorEditado = precosEditados[prod.id];
-                    const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
-                    const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
-                    const isEditando = produtoEmEdicao?.id === prod.id;
+          {/* TABELA DE DADOS DO FIREBASE */}
+          <div className="table-responsive">
+            {carregando ? (
+              <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
+                <h3><i className="fa-solid fa-spinner fa-spin"></i> Carregando preços do servidor...</h3>
+              </div>
+            ) : (
+              <table className="validades-table">
+                <thead>
+                  <tr>
+                    <th>CATEGORIA</th>
+                    <th>PRODUTO</th>
+                    <th style={{ textAlign: 'center' }}>PREÇO ATUAL</th>
+                    <th style={{ textAlign: 'center' }}>EDIÇÃO RÁPIDA (R$)</th>
+                    <th style={{ textAlign: 'center' }}>AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {produtosFiltrados.length === 0 ? (
+                    <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Nenhum produto encontrado.</td></tr>
+                  ) : (
+                    produtosFiltrados.map(prod => {
+                      const valorEditado = precosEditados[prod.id];
+                      const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
+                      const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
+                      const isEditando = produtoEmEdicao?.id === prod.id;
 
-                    return (
-                      <tr key={prod.id} className="validades-tr linha-normal" style={{ background: isEditando ? '#e3f2fd' : 'transparent', transition: 'background 0.3s' }}>
-                        <td className="col-cat" style={{ verticalAlign: 'middle' }}><b>{prod.categoria}</b></td>
+                      return (
+                        <tr key={prod.id} className="validades-tr linha-normal" style={{ background: isEditando ? '#e3f2fd' : 'transparent', transition: 'background 0.3s' }}>
+                          <td className="col-cat" style={{ verticalAlign: 'middle' }}><b>{prod.categoria}</b></td>
 
-                        <td className="col-prod" style={{ verticalAlign: 'middle' }}>
-                          <div className="prod-nome" style={{ fontWeight: isEditando ? 'bold' : 'normal' }}>
-                            {prod.complemento} {prod.gramatura}
-                            {prod.maior18 && <span style={{ color: 'red', marginLeft: '5px', fontSize: '10px' }}> (+18)</span>}
-                          </div>
-                          <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
-                        </td>
+                          <td className="col-prod" style={{ verticalAlign: 'middle' }}>
+                            <div className="prod-nome" style={{ fontWeight: isEditando ? 'bold' : 'normal' }}>
+                              {prod.complemento} {prod.gramatura}
+                              {prod.maior18 && <span style={{ color: 'red', marginLeft: '5px', fontSize: '10px' }}> (+18)</span>}
+                            </div>
+                            <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
+                          </td>
 
-                        <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                          <span className="mobile-label">Preço Atual:</span>
-                          <span style={{ fontWeight: '900', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
-                        </td>
+                          <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                            <span className="mobile-label">Preço Atual:</span>
+                            <span style={{ fontWeight: '900', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
+                          </td>
 
-                        <td className="col-nova-val" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                          <span className="mobile-label">Novo Preço:</span>
-                          <input
-                            type="text"
-                            className="input-nova-data"
-                            placeholder={precoAtualFormat}
-                            value={valorEditado !== undefined ? valorEditado : ''}
-                            onChange={(e) => handleChangePreco(prod.id, e.target.value)}
-                            style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444', width: '90px' }}
-                          />
-                        </td>
+                          <td className="col-nova-val" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                            <span className="mobile-label">Novo Preço:</span>
+                            <input
+                              type="text"
+                              className="input-nova-data"
+                              placeholder={precoAtualFormat}
+                              value={valorEditado !== undefined ? valorEditado : ''}
+                              onChange={(e) => handleChangePreco(prod.id, e.target.value)}
+                              style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444', width: '90px' }}
+                            />
+                          </td>
 
-                        <td className="col-acao" style={{ display: 'flex', gap: '8px', justifyContent: 'center', verticalAlign: 'middle' }}>
-                          {/* BOTÃO AZUL PARA EDITAR COMPLETO */}
-                          <button
-                            onClick={() => carregarNoFormulario(prod)}
-                            style={{
-                              background: isEditando ? '#0288D1' : '#03A9F4',
-                              color: '#fff',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              transition: 'all 0.2s'
-                            }}
-                            title="Editar Todos os Campos"
-                          >
-                            <i className="fa-solid fa-pencil"></i> EDITAR
-                          </button>
+                          <td className="col-acao" style={{ display: 'flex', gap: '8px', justifyContent: 'center', verticalAlign: 'middle' }}>
+                            {/* BOTÃO AZUL PARA EDITAR COMPLETO */}
+                            <button
+                              onClick={() => carregarNoFormulario(prod)}
+                              style={{
+                                background: isEditando ? '#0288D1' : '#03A9F4',
+                                color: '#fff',
+                                border: 'none',
+                                padding: '8px 12px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                transition: 'all 0.2s'
+                              }}
+                              title="Editar Todos os Campos"
+                            >
+                              <i className="fa-solid fa-pencil"></i> EDITAR
+                            </button>
 
-                          {/* BOTÃO VERMELHO PARA EXCLUIR */}
-                          <button
-                            onClick={() => excluirProduto(prod)}
-                            style={{ background: '#F44336', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                            title="Excluir Produto"
-                          >
-                            <i className="fa-solid fa-trash-can"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          )}
+                            {/* BOTÃO VERMELHO PARA EXCLUIR */}
+                            <button
+                              onClick={() => excluirProduto(prod)}
+                              style={{ background: '#F44336', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
+                              title="Excluir Produto"
+                            >
+                              <i className="fa-solid fa-trash-can"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       </div>
     </div>
