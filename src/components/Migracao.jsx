@@ -4,7 +4,7 @@ import { db } from '../data/firebaseConfig';
 import { collection, getDocs, doc, setDoc, deleteDoc, query, where, addDoc } from 'firebase/firestore';
 
 // ==========================================
-// 1. CARGA DE SEGURANÇA (DADOS ESTÁTICOS REVISADOS)
+// 1. CARGA DE SEGURANÇA (DADOS ESTÁTICOS)
 // ==========================================
 const categoriasData = [
   {
@@ -393,25 +393,22 @@ categoriasData.forEach(cat => {
 });
 
 // ==========================================
-// 2. PAINEL MESTRE (MIGRAÇÃO + CRIAÇÃO + EDIÇÃO COMPLETA)
+// 2. PAINEL MESTRE (MIGRAÇÃO + CRIAÇÃO MODAL)
 // ==========================================
 export function Migracao({ fecharPainel, recarregarDados }) {
-  // Estados da Senha
   const [senha, setSenha] = useState("");
   const [autenticado, setAutenticado] = useState(false);
   const [erroSenha, setErroSenha] = useState(false);
 
-  // Estados da Tabela e Busca
   const [produtosFirebase, setProdutosFirebase] = useState([]);
   const [precosEditados, setPrecosEditados] = useState({});
   const [carregando, setCarregando] = useState(false);
   const [buscaVal, setBuscaVal] = useState("");
 
-  // Estados de Operação em Lote
   const [salvando, setSalvando] = useState(false);
   const [progresso, setProgresso] = useState(0);
 
-  // ESTADOS DO FORMULÁRIO SUPERIOR (CRIAÇÃO/EDIÇÃO COMPLETA)
+  // Estados do Formulário Modal
   const [produtoEmEdicao, setProdutoEmEdicao] = useState(null);
   const [formCategoria, setFormCategoria] = useState("");
   const [formComplemento, setFormComplemento] = useState("");
@@ -419,7 +416,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [formPreco, setFormPreco] = useState("");
 
   const [salvandoForm, setSalvandoForm] = useState(false);
-  const [formAberto, setFormAberto] = useState(false); // NOVO ESTADO DA SANFONA
+  const [formAberto, setFormAberto] = useState(false);
 
   const SENHA_MESTRE = "182529";
 
@@ -461,39 +458,35 @@ export function Migracao({ fecharPainel, recarregarDados }) {
 
   const categoriasUnicas = Array.from(new Set(produtosFirebase.map(p => p.categoria))).filter(Boolean).sort();
 
+  // Aciona a Modal para NOVO Produto
+  const abrirFormularioNovo = () => {
+    setProdutoEmEdicao(null);
+    setFormCategoria("");
+    setFormComplemento("");
+    setFormGramatura("");
+    setFormPreco("");
+    setFormAberto(true);
+  };
+
+  // Aciona a Modal para EDITAR Produto Existente
   const carregarNoFormulario = (produto) => {
     setProdutoEmEdicao(produto);
     setFormCategoria(produto.categoria || "");
     setFormComplemento(produto.complemento || "");
     setFormGramatura(produto.gramatura || "");
     setFormPreco(Number(produto.precoBase).toFixed(2).replace('.', ','));
-
-    // Abre a janela de edição
     setFormAberto(true);
-
-    // Dá um pequeno atraso para o React renderizar a janela aberta antes de rolar
-    setTimeout(() => {
-      const formElement = document.getElementById('painel-edicao-mestre');
-      if (formElement) formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
   };
 
-  const limparFormulario = () => {
-    setProdutoEmEdicao(null);
-    setFormCategoria("");
-    setFormComplemento("");
-    setFormGramatura("");
-    setFormPreco("");
-    setFormAberto(false); // Fecha a janela ao cancelar
+  const fecharFormulario = () => {
+    setFormAberto(false);
   };
 
-  // LÓGICA ATUALIZADA: ADICIONA NOVO PRODUTO SE NÃO ESTIVER EDITANDO
   const salvarProdutoFormulario = async () => {
     if (!formCategoria || !formComplemento || !formGramatura || !formPreco) {
       return alert("Por favor, preencha todos os campos!");
     }
 
-    // Limpa a formatação BR para salvar no banco (1.250,00 -> 1250.00)
     const precoLimpo = formPreco.replace(/\./g, '').replace(',', '.');
     const precoFinal = parseFloat(precoLimpo);
 
@@ -502,7 +495,6 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     setSalvandoForm(true);
     try {
       if (produtoEmEdicao) {
-        // MODO EDIÇÃO
         const docRef = doc(db, "produtos", produtoEmEdicao.id);
         await setDoc(docRef, {
           categoria: formCategoria.toUpperCase(),
@@ -512,7 +504,6 @@ export function Migracao({ fecharPainel, recarregarDados }) {
         }, { merge: true });
         alert("Produto atualizado com sucesso!");
       } else {
-        // MODO CRIAÇÃO (Adiciona Novo)
         await addDoc(collection(db, "produtos"), {
           categoria: formCategoria.toUpperCase(),
           complemento: formComplemento.toUpperCase(),
@@ -523,7 +514,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
         alert("Novo produto cadastrado com sucesso!");
       }
 
-      limparFormulario();
+      fecharFormulario();
       carregarProdutosDoBanco();
       if (recarregarDados) recarregarDados();
     } catch (error) {
@@ -681,224 +672,64 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   );
 
   return (
-    <div className="painel-overlay" onClick={fechar}>
-      <div className="painel-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '1000px' }}>
+    <>
+      <div className="painel-overlay" onClick={fechar}>
+        <div className="painel-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '1000px', width: '95vw' }}>
 
-        {/* HEADER */}
-        <div className="painel-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <h2 style={{ color: 'var(--laranja)', margin: 0 }}>
-              <i className="fa-solid fa-server"></i> GERENCIADOR DE CATÁLOGO
-            </h2>
-            {/* BOTÃO ENVIAR CARGA ROBUSTO E CINZA */}
-            <button
-              className={salvando ? 'loading' : ''}
-              onClick={executarSincronizacaoDaCarga}
-              disabled={salvando || carregando}
-              style={{
-                margin: 0,
-                padding: '8px 15px',
-                fontWeight: 'bold',
-                fontSize: '11px',
-                backgroundColor: '#e2e2e2',
-                color: '#777777',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                position: 'relative',
-                overflow: 'hidden',
-                width: 'fit-content'
-              }}
-            >
-              {salvando && <div className="progress-fill" style={{ width: `${progresso}%`, background: 'rgba(0,0,0,0.15)', position: 'absolute', top: 0, left: 0, bottom: 0, transition: 'width 0.2s' }}></div>}
-              <span className="btn-content" style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <i className={`fa-solid ${salvando ? 'fa-sync fa-spin' : 'fa-cloud-arrow-up'}`}></i>
-                {salvando ? ` SALVANDO CARGA ${progresso}%` : 'ENVIAR CARGA PADRÃO DO CÓDIGO'}
-              </span>
-            </button>
-          </div>
-
-          <div className="painel-controls" style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '8px',
-            width: '100%',
-            marginTop: '10px' // Ajuste conforme necessário
-          }}>
-            {/* Linha 1: Input de Busca (ocupa as 2 colunas) */}
-            <input
-              type="text"
-              className="input-busca-painel"
-              placeholder="🔍 Buscar produto..."
-              value={buscaVal}
-              onChange={(e) => setBuscaVal(e.target.value)}
-              style={{
-                gridColumn: 'span 2',
-                padding: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                boxSizing: 'border-box',
-                height: '40px' // Altura padrão do input
-              }}
-            />
-
-            {/* Linha 2: Salvar e Fechar - Botões com 40px fixos */}
-            <button
-              onClick={salvarTudo}
-              disabled={salvando || carregando}
-              style={{
-                height: '40px',
-                background: '#4CAF50',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              {salvando ? `⏳ SALVANDO...` : '💾 SALVAR LOTE'}
-            </button>
-
-            <button
-              className="btn-fechar-painel"
-              onClick={fechar}
-              disabled={salvando}
-              style={{ height: '40px', margin: 0 }}
-            >
-              ✖ FECHAR
-            </button>
-          </div>
-
-          {/* FORMULÁRIO DE CRIAÇÃO / EDIÇÃO COMPLETA (TIPO ACORDEÃO) */}
-          <div id="painel-edicao-mestre" className="hide-print" style={{
-            background: produtoEmEdicao ? '#e3f2fd' : '#f8f9fa',
-            borderRadius: '8px',
-            border: `1px solid ${produtoEmEdicao ? '#03A9F4' : '#ddd'}`,
-            marginBottom: '10px',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-            overflow: 'visible'
-          }}>
-            {/* CABEÇALHO CLICÁVEL COM CARA DE BOTÃO (TOGGLE) */}
-            <div
-              onClick={() => setFormAberto(!formAberto)}
-              style={{
-                padding: '15px 20px',
-                width: '100%',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                userSelect: 'none',
-                backgroundColor: produtoEmEdicao ? '#0288D1' : '#ffffff',
-                color: produtoEmEdicao ? '#ffffff' : 'var(--marrom)',
-                borderRadius: formAberto ? '8px 8px 0 0' : '8px',
-                borderBottom: formAberto ? `1px solid ${produtoEmEdicao ? '#0288D1' : '#ddd'}` : 'none',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <h3 style={{ margin: 0, width: '100%', fontSize: '11pt', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {produtoEmEdicao ? (
-                  <><i className="fa-solid fa-pen-to-square"></i> EDITANDO PRODUTO: {produtoEmEdicao.complemento}</>
-                ) : (
-                  <><i className="fa-solid fa-circle-plus" style={{ color: 'var(--laranja)' }}></i> CADASTRAR NOVO PRODUTO</>
-                )}
-              </h3>
-              <i className={`fa-solid fa-chevron-${formAberto ? 'up' : 'down'}`} style={{ transition: 'transform 0.3s' }}></i>
+          <div className="painel-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h2 style={{ color: 'var(--laranja)', margin: 0, fontSize: '18px' }}>
+                <i className="fa-solid fa-server"></i> GERENCIADOR DE CATÁLOGO
+              </h2>
+              <button
+                className={salvando ? 'loading' : ''}
+                onClick={executarSincronizacaoDaCarga}
+                disabled={salvando || carregando}
+                style={{
+                  margin: 0,
+                  padding: '5px 10px',
+                  fontWeight: 'bold',
+                  fontSize: '10px',
+                  backgroundColor: '#e2e2e2',
+                  color: '#777777',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  width: 'fit-content'
+                }}
+              >
+                {salvando ? `⏳ SALVANDO CARGA ${progresso}%` : 'ENVIAR CARGA PADRÃO DO CÓDIGO'}
+              </button>
             </div>
 
-            {/* ÁREA EXPANSÍVEL (SÓ APARECE SE formAberto FOR TRUE) */}
-            {formAberto && (
-              <div style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-
-                  <div style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>CATEGORIA</label>
-                    <select
-                      value={formCategoria}
-                      onChange={e => setFormCategoria(e.target.value)}
-                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none', height: '34px', fontSize: '12px' }}
-                    >
-                      <option value="">Selecione...</option>
-                      {categoriasUnicas.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div style={{ flex: '2 1 200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>NOME / COMPLEMENTO</label>
-                    <input
-                      type="text"
-                      value={formComplemento}
-                      onChange={e => setFormComplemento(e.target.value)}
-                      placeholder="Ex: TABLETE AO LEITE"
-                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
-                    />
-                  </div>
-
-                  <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>GRAMATURA</label>
-                    <input
-                      type="text"
-                      value={formGramatura}
-                      onChange={e => setFormGramatura(e.target.value)}
-                      placeholder="Ex: 90g ou 1 UN"
-                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', textTransform: 'uppercase', outline: 'none', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
-                    />
-                  </div>
-
-                  <div style={{ flex: '1 1 100px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '10px', fontWeight: 'bold', color: '#555', whiteSpace: 'nowrap' }}>PREÇO (R$)</label>
-                    <input
-                      type="text"
-                      value={formPreco}
-                      onChange={(e) => {
-                        let valor = e.target.value.replace(/\D/g, '');
-                        if (!valor) valor = '0';
-                        setFormPreco((Number(valor) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                      }}
-                      placeholder="0,00"
-                      style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', outline: 'none', fontWeight: 'bold', height: '34px', fontSize: '12px', boxSizing: 'border-box' }}
-                    />
-                  </div>
-
-                  {/* BOTÕES INLINE (Ícones dinâmicos) */}
-                  <div style={{ display: 'flex', gap: '6px', flex: '0 0 auto' }}>
-                    <button
-                      onClick={salvarProdutoFormulario}
-                      disabled={salvandoForm}
-                      title={produtoEmEdicao ? "Salvar Alterações" : "Adicionar Novo Produto"}
-                      style={{ background: '#4CAF50', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
-                    >
-                      {salvandoForm ? (
-                        <i className="fa-solid fa-spinner fa-spin"></i>
-                      ) : (
-                        produtoEmEdicao ? <i className="fa-solid fa-floppy-disk"></i> : <i className="fa-solid fa-plus"></i>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={limparFormulario}
-                      title="Limpar formulário / Fechar Aba"
-                      style={{ background: '#f44336', color: '#fff', width: '34px', height: '34px', borderRadius: '4px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', transition: 'background 0.2s' }}
-                    >
-                      <i className="fa-solid fa-xmark"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* CONTROLES: Inline no PC, Grid no Celular */}
+            <div className="migracao-header-actions">
+              <input
+                type="text"
+                className="migracao-busca"
+                placeholder="🔍 Buscar produto..."
+                value={buscaVal}
+                onChange={(e) => setBuscaVal(e.target.value)}
+              />
+              <button className="migracao-btn btn-cadastrar" onClick={abrirFormularioNovo} disabled={salvando || carregando}>
+                <i className="fa-solid fa-plus"></i> CADASTRAR
+              </button>
+              <button className="migracao-btn btn-salvar" onClick={salvarTudo} disabled={salvando || carregando}>
+                <i className="fa-solid fa-floppy-disk"></i> SALVAR LOTE
+              </button>
+              <button className="migracao-btn btn-fechar" onClick={fechar} disabled={salvando}>
+                <i className="fa-solid fa-xmark"></i> FECHAR
+              </button>
+            </div>
           </div>
 
-          {/* TABELA DE DADOS DO FIREBASE */}
-          <div className="table-responsive">
+          <div className="table-responsive" style={{ maxHeight: '60vh', overflowY: 'auto', marginTop: '15px' }}>
             {carregando ? (
               <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
                 <h3><i className="fa-solid fa-spinner fa-spin"></i> Carregando preços do servidor...</h3>
               </div>
             ) : (
-              <table className="validades-table">
+              <table className="validades-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
                     <th>CATEGORIA</th>
@@ -916,65 +747,44 @@ export function Migracao({ fecharPainel, recarregarDados }) {
                       const valorEditado = precosEditados[prod.id];
                       const precoAtualFormat = Number(prod.precoBase).toFixed(2).replace('.', ',');
                       const temAlteracao = valorEditado !== undefined && valorEditado !== precoAtualFormat && valorEditado !== "";
-                      const isEditando = produtoEmEdicao?.id === prod.id;
 
                       return (
-                        <tr key={prod.id} className="validades-tr linha-normal" style={{ background: isEditando ? '#e3f2fd' : 'transparent', transition: 'background 0.3s' }}>
-                          <td className="col-cat" style={{ verticalAlign: 'middle' }}><b>{prod.categoria}</b></td>
-
-                          <td className="col-prod" style={{ verticalAlign: 'middle' }}>
-                            <div className="prod-nome" style={{ fontWeight: isEditando ? 'bold' : 'normal' }}>
+                        <tr key={prod.id} className="validades-tr linha-normal" style={{ borderBottom: '1px solid #eee' }}>
+                          <td className="col-cat" style={{ verticalAlign: 'middle', padding: '10px' }}><b>{prod.categoria}</b></td>
+                          <td className="col-prod" style={{ verticalAlign: 'middle', padding: '10px' }}>
+                            <div className="prod-nome">
                               {prod.complemento} {prod.gramatura}
-                              {prod.maior18 && <span style={{ color: 'red', marginLeft: '5px', fontSize: '10px' }}> (+18)</span>}
                             </div>
-                            <span className="mobile-label" style={{ fontWeight: 'normal', color: '#999', marginTop: '2px' }}>ID: {prod.id}</span>
+                            <span style={{ fontSize: '10px', color: '#999' }}>ID: {prod.id}</span>
                           </td>
-
-                          <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                            <span className="mobile-label">Preço Atual:</span>
-                            <span style={{ fontWeight: '900', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
+                          <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle', padding: '10px' }}>
+                            <span style={{ fontWeight: 'bold', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
                           </td>
-
-                          <td className="col-nova-val" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                            <span className="mobile-label">Novo Preço:</span>
+                          <td className="col-nova-val" style={{ textAlign: 'center', verticalAlign: 'middle', padding: '10px' }}>
                             <input
                               type="text"
-                              className="input-nova-data"
                               placeholder={precoAtualFormat}
                               value={valorEditado !== undefined ? valorEditado : ''}
                               onChange={(e) => handleChangePreco(prod.id, e.target.value)}
-                              style={{ borderColor: temAlteracao ? 'var(--laranja)' : '#ccc', color: temAlteracao ? 'var(--laranja)' : '#444', width: '90px' }}
+                              style={{ 
+                                padding: '5px', 
+                                borderRadius: '4px', 
+                                border: `1px solid ${temAlteracao ? 'var(--laranja)' : '#ccc'}`,
+                                width: '80px',
+                                textAlign: 'center'
+                              }}
                             />
                           </td>
-
-                          <td className="col-acao" style={{ display: 'flex', gap: '8px', justifyContent: 'center', verticalAlign: 'middle' }}>
-                            {/* BOTÃO AZUL PARA EDITAR COMPLETO */}
+                          <td className="col-acao" style={{ display: 'flex', gap: '5px', justifyContent: 'center', verticalAlign: 'middle', padding: '10px' }}>
                             <button
                               onClick={() => carregarNoFormulario(prod)}
-                              style={{
-                                background: isEditando ? '#0288D1' : '#03A9F4',
-                                color: '#fff',
-                                border: 'none',
-                                padding: '8px 12px',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '11px',
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                transition: 'all 0.2s'
-                              }}
-                              title="Editar Todos os Campos"
+                              style={{ background: '#03A9F4', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
                             >
                               <i className="fa-solid fa-pencil"></i> EDITAR
                             </button>
-
-                            {/* BOTÃO VERMELHO PARA EXCLUIR */}
                             <button
                               onClick={() => excluirProduto(prod)}
-                              style={{ background: '#F44336', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}
-                              title="Excluir Produto"
+                              style={{ background: '#F44336', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '4px', cursor: 'pointer' }}
                             >
                               <i className="fa-solid fa-trash-can"></i>
                             </button>
@@ -989,6 +799,57 @@ export function Migracao({ fecharPainel, recarregarDados }) {
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ========================================================
+          MODAL SOBREPOSTA DE CADASTRO / EDIÇÃO
+      ======================================================== */}
+      {formAberto && (
+        <div className="modal-secundaria-overlay" onClick={fecharFormulario}>
+          <div className="modal-secundaria-content" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: 0, color: produtoEmEdicao ? '#0288D1' : 'var(--laranja)', fontSize: '14pt', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+              <i className={`fa-solid ${produtoEmEdicao ? 'fa-pen-to-square' : 'fa-circle-plus'}`}></i> 
+              {produtoEmEdicao ? ` Editar Produto` : " Cadastrar Novo Produto"}
+            </h3>
+
+            <div className="modal-input-group">
+              <label>CATEGORIA</label>
+              <select value={formCategoria} onChange={e => setFormCategoria(e.target.value)}>
+                <option value="">Selecione a categoria...</option>
+                {categoriasUnicas.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+            </div>
+
+            <div className="modal-input-group">
+              <label>NOME / COMPLEMENTO</label>
+              <input type="text" value={formComplemento} onChange={e => setFormComplemento(e.target.value)} placeholder="Ex: TABLETE AO LEITE" style={{ textTransform: 'uppercase' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="modal-input-group" style={{ flex: 1 }}>
+                <label>GRAMATURA</label>
+                <input type="text" value={formGramatura} onChange={e => setFormGramatura(e.target.value)} placeholder="Ex: 90g" style={{ textTransform: 'uppercase' }} />
+              </div>
+              <div className="modal-input-group" style={{ flex: 1 }}>
+                <label>PREÇO (R$)</label>
+                <input type="text" value={formPreco} onChange={(e) => {
+                  let valor = e.target.value.replace(/\D/g, '');
+                  if (!valor) valor = '0';
+                  setFormPreco((Number(valor) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+                }} placeholder="0,00" style={{ fontWeight: 'bold', color: 'var(--laranja)' }} />
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={fecharFormulario} style={{ background: '#e0e0e0', color: '#333' }}>
+                CANCELAR
+              </button>
+              <button onClick={salvarProdutoFormulario} disabled={salvandoForm} style={{ background: '#4CAF50', flex: 2 }}>
+                {salvandoForm ? <i className="fa-solid fa-spinner fa-spin"></i> : (produtoEmEdicao ? 'SALVAR ALTERAÇÃO' : 'CADASTRAR')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

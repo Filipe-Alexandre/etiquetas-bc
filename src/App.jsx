@@ -114,16 +114,15 @@ function App() {
 
   const todosProdutos = Object.values(bancoDeDados).flat();
 
-  // FUNÇÃO NOVA: Adiciona ou remove itens da memória de impressão individual
   const alterarQuantidadeIndividual = (id, delta) => {
     if (delta === 1) {
-      setSelectedItems(prev => [...prev, id]); // Adiciona mais uma cópia do ID
+      setSelectedItems(prev => [...prev, id]);
     } else if (delta === -1) {
       setSelectedItems(prev => {
         const index = prev.indexOf(id);
         if (index > -1) {
           const next = [...prev];
-          next.splice(index, 1); // Remove apenas UMA cópia
+          next.splice(index, 1);
           return next;
         }
         return prev;
@@ -131,7 +130,6 @@ function App() {
     }
   };
 
-  // LÓGICA ATUALIZADA: Conta as cópias e preserva a ordem alfabética/categoria
   const countMap = selectedItems.reduce((acc, id) => {
     acc[id] = (acc[id] || 0) + 1;
     return acc;
@@ -141,7 +139,6 @@ function App() {
   todosProdutos.forEach(p => {
     if (countMap[p.id]) {
       for (let i = 0; i < countMap[p.id]; i++) {
-        // Gera um ID único para o React não reclamar de chaves duplicadas na hora de renderizar
         produtosSelecionados.push({ ...p, _printId: `${p.id}-${i}` });
       }
     }
@@ -153,7 +150,6 @@ function App() {
   }
 
   const toggleItem = (id) => {
-    // Se desmarcar na sidebar, remove TODAS as cópias. Se marcar, adiciona UMA.
     setSelectedItems(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
@@ -174,10 +170,7 @@ function App() {
 
   Object.keys(bancoDeDados).forEach(cat => {
     const prods = bancoDeDados[cat].filter(p => {
-      // Concatena a string exata que usamos no Kit, tudo em minúsculo para a busca não falhar
       const nomeCompleto = `${p.categoria} ${p.complemento} ${p.gramatura}`.toLowerCase();
-
-      // Retorna verdadeiro se o que o usuário digitou existir dentro dessa string completa
       return nomeCompleto.includes(termoLower);
     });
 
@@ -187,9 +180,27 @@ function App() {
   return (
     <div className={`layout-wrapper ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
 
-      <button className="fab-menu hide-print" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
-      </button>
+      <div className="floating-action-group hide-print">
+
+        {/* Botão de Cima: Imprimir (Vermelho) */}
+        <button
+          className="fab-btn fab-print"
+          onClick={() => window.print()}
+          title="Imprimir Etiquetas"
+        >
+          <i className="fa-solid fa-print"></i>
+        </button>
+
+        {/* Botão de Baixo: Menu (Laranja) */}
+        <button
+          className="fab-btn fab-menu"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          title="Menu"
+        >
+          <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'}`}></i>
+        </button>
+
+      </div>
 
       {sidebarOpen && <div className="sidebar-overlay hide-print" onClick={() => setSidebarOpen(false)}></div>}
 
@@ -235,7 +246,6 @@ function App() {
                 <div key={idx} className="preview-folha">
                   {grupo.map(produto => (
 
-                    // AQUI ENTRA A ESTRUTURA COM OS BOTÕES FLUTUANTES
                     <div key={produto._printId} style={{ position: 'relative', display: 'flex', justifyContent: 'center', pageBreakInside: 'avoid' }}>
 
                       <div className="hide-print print-floating-controls">
