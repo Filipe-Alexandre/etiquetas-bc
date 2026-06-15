@@ -414,6 +414,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [formComplemento, setFormComplemento] = useState("");
   const [formGramatura, setFormGramatura] = useState("");
   const [formPreco, setFormPreco] = useState("");
+  const [formMaior18, setFormMaior18] = useState(false);
 
   const [salvandoForm, setSalvandoForm] = useState(false);
   const [formAberto, setFormAberto] = useState(false);
@@ -465,6 +466,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     setFormComplemento("");
     setFormGramatura("");
     setFormPreco("");
+    setFormMaior18(false);
     setFormAberto(true);
   };
 
@@ -475,6 +477,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     setFormComplemento(produto.complemento || "");
     setFormGramatura(produto.gramatura || "");
     setFormPreco(Number(produto.precoBase).toFixed(2).replace('.', ','));
+    setFormMaior18(produto.maior18 || false);
     setFormAberto(true);
   };
 
@@ -482,7 +485,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
     setFormAberto(false);
   };
 
-  const salvarProdutoFormulario = async () => {
+const salvarProdutoFormulario = async () => {
     if (!formCategoria || !formComplemento || !formGramatura || !formPreco) {
       return alert("Por favor, preencha todos os campos!");
     }
@@ -500,7 +503,8 @@ export function Migracao({ fecharPainel, recarregarDados }) {
           categoria: formCategoria.toUpperCase(),
           complemento: formComplemento.toUpperCase(),
           gramatura: formGramatura.toUpperCase(),
-          precoBase: precoFinal
+          precoBase: precoFinal,
+          maior18: formMaior18 // <--- SALVA A EDIÇÃO NO BANCO
         }, { merge: true });
         alert("Produto atualizado com sucesso!");
       } else {
@@ -509,7 +513,7 @@ export function Migracao({ fecharPainel, recarregarDados }) {
           complemento: formComplemento.toUpperCase(),
           gramatura: formGramatura.toUpperCase(),
           precoBase: precoFinal,
-          maior18: false
+          maior18: formMaior18 // <--- SALVA O CADASTRO NO BANCO
         });
         alert("Novo produto cadastrado com sucesso!");
       }
