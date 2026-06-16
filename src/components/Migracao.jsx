@@ -852,7 +852,7 @@ const salvarProdutoFormulario = async () => {
                   style={{ width: '18px', height: '18px', accentColor: '#d32f2f', cursor: 'pointer' }}
                 />
                 <span style={{ fontSize: '13px', fontWeight: 'bold', color: formMaior18 ? '#d32f2f' : '#666', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="fa-solid fa-wine-glass"></i> Produto Destinado a Maiores de 18 Anos
+                  <i style={{ color: formMaior18 ? '#4A0D12' : '#666' }} className="fa-solid fa-wine-glass"></i> Produto Destinado a Maiores de 18 Anos
                 </span>
               </label>
             </div>
