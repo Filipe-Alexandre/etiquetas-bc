@@ -1462,6 +1462,12 @@ body {
   color: #555;
 }
 
+.modal-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
 .modal-actions button {
   flex: 1;
   height: 45px;
