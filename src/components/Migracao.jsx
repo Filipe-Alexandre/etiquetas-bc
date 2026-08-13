@@ -185,7 +185,7 @@ const categoriasData = [
       { comp: "BRIGADEIRO BRASILIDADES", gram: "90g", preco: 22.99 },
       { comp: "CREME DE AVELÃ", gram: "90g", preco: 22.99 },
       { comp: "DUO", gram: "90g", preco: 22.99 },
-      { comp: "GATO MIA", gram: "90g", preco: 22.99 },
+      { comp: "AO LEITE", gram: "90g", preco: 22.99 },
       { comp: "LICOR DE CEREJA", gram: "90g", preco: 22.99, maior18: true },
       { comp: "PISTACHE", gram: "90g", preco: 22.99 }
     ]
