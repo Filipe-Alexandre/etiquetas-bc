@@ -25,10 +25,10 @@ const categoriasData = [
     nome: "BEM ME FAZ", prefixo: "bmf",
     itens: [
       { comp: "BOMBOM AMENDOIM", gram: "20g", preco: 5.99 },
-      { comp: "TABLETE AO LEITE", gram: "20g", preco: 6.49 },
-      { comp: "TABLETE AO LEITE", gram: "90g", preco: 22.99 },
       { comp: "BOMBOM GATO MIA", gram: "20g", preco: 5.99 },
       { comp: "GATO MIA", gram: "70g", preco: 21.99 }
+      { comp: "TABLETE AO LEITE", gram: "20g", preco: 6.49 },
+      { comp: "TABLETE AO LEITE", gram: "90g", preco: 22.99 },
     ]
   },
   {
@@ -88,6 +88,8 @@ const categoriasData = [
       { comp: "GATO MIA", gram: "12g", preco: 2.99 },
       { comp: "PURO CACAU", gram: "12g", preco: 2.99 },
       { comp: "TRADICIONAL", gram: "12g", preco: 2.99 }
+      { comp: "MORANGO", gram: "12g", preco: 2.99 }
+      { comp: "CARAMELO", gram: "12g", preco: 2.99 }
     ]
   },
   {
