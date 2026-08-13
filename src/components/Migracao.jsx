@@ -55,7 +55,6 @@ const categoriasData = [
       { comp: "ALPINO", gram: "90g", preco: 17.99 },
       { comp: "BOMBOM LOLLO", gram: "90g", preco: 28.99 },
       { comp: "BOMBOM TRADICIONAL", gram: "90g", preco: 28.99 },
-      { comp: "CHOCOLATE", gram: "90g", preco: 17.99 },
       { comp: "LOLLO", gram: "30g", preco: 7.99 },
       { comp: "SENSAÇÃO", gram: "90g", preco: 17.99 },
       { comp: "TRADICIONAL", gram: "30g", preco: 7.99 },
