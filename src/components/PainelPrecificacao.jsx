@@ -350,7 +350,6 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
                       <td className="col-cat" style={{ verticalAlign: 'middle' }}><b>{prod.categoria}</b></td>
                       <td className="col-prod" style={{ verticalAlign: 'middle' }}>
                         <div className="prod-nome" style={{ fontWeight: isEditando ? 'bold' : 'normal' }}>{prod.complemento} {prod.gramatura}</div>
-                        <span style={{ fontSize: '10px', color: '#999', fontFamily: 'var(--normal)' }}>ID: {prod.id}</span>
                       </td>
                       <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                         <span className="mobile-label">Preço Atual:</span>
