@@ -286,11 +286,26 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       const querySnapshot = await getDocs(collection(db, "produtos"));
       const lista = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      lista.sort((a, b) => {
-        if (a.categoria < b.categoria) return -1;
-        if (a.categoria > b.categoria) return 1;
-        return (a.complemento || "").localeCompare(b.complemento || "");
-      });
+lista.sort((a, b) => {
+  // 1. Ordena por Categoria
+  if (a.categoria < b.categoria) return -1;
+  if (a.categoria > b.categoria) return 1;
+
+  // 2. Se a categoria for igual, ordena pelo Complemento (nome)
+  const compA = a.complemento || "";
+  const compB = b.complemento || "";
+  
+  if (compA !== compB) {
+    return compA.localeCompare(compB);
+  }
+
+  // 3. Se o complemento também for igual, ordena pela Gramatura
+  const gramA = a.gramatura || "";
+  const gramB = b.gramatura || "";
+  
+  // O { numeric: true } garante que "100g" venha DEPOIS de "20g" em vez de antes.
+  return gramA.localeCompare(gramB, undefined, { numeric: true });
+});
 
       setProdutosFirebase(lista);
     } catch (error) {
