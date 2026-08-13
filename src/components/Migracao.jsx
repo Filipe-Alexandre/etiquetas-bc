@@ -618,7 +618,7 @@ const salvarProdutoFormulario = async () => {
                             <div className="prod-nome">
                               {prod.complemento} {prod.gramatura}
                             </div>
-                            <span style={{ fontSize: '10px', color: '#999' }}>ID: {prod.id}</span>
+                            
                           </td>
                           <td className="col-val-atual" style={{ textAlign: 'center', verticalAlign: 'middle', padding: '10px' }}>
                             <span style={{ fontWeight: 'bold', color: 'var(--laranja)' }}>R$ {precoAtualFormat}</span>
