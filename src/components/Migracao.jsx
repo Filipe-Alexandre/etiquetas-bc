@@ -89,7 +89,8 @@ const categoriasData = [
       { comp: "PURO CACAU", gram: "12g", preco: 2.99 },
       { comp: "TRADICIONAL", gram: "12g", preco: 2.99 },
       { comp: "MORANGO", gram: "12g", preco: 2.99 },
-      { comp: "CARAMELO", gram: "12g", preco: 2.99 }
+      { comp: "CARAMELO", gram: "12g", preco: 2.99 },
+      { comp: "AMENDOIM", gram: "12g", preco: 2.99 }
     ]
   },
   {
