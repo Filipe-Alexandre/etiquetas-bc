@@ -96,9 +96,7 @@ const categoriasData = [
   {
     nome: "PELÚCIA", prefixo: "pel",
     itens: [
-
       { comp: "CACHORRO BOB C/ POTE", gram: "1 UN", preco: 65.90 },
-   
       { comp: "CACHORRO PIRATA BC", gram: "1 UN", preco: 45.90 },
       { comp: "CAPIVARA C/ TRUFA BRASIL CACAU", gram: "1 UN", preco: 72.90 },
       { comp: "COELHO ROSA C/ POTE", gram: "1 UN", preco: 65.90 },
@@ -253,16 +251,19 @@ export function Migracao({ fecharPainel, recarregarDados }) {
   const [salvando, setSalvando] = useState(false);
   const [progresso, setProgresso] = useState(0);
 
-  // Estados do Formulário Modal
+  // Estados do Formulário Modal Principal
   const [produtoEmEdicao, setProdutoEmEdicao] = useState(null);
   const [formCategoria, setFormCategoria] = useState("");
   const [formComplemento, setFormComplemento] = useState("");
   const [formGramatura, setFormGramatura] = useState("");
   const [formPreco, setFormPreco] = useState("");
   const [formMaior18, setFormMaior18] = useState(false);
-
   const [salvandoForm, setSalvandoForm] = useState(false);
   const [formAberto, setFormAberto] = useState(false);
+
+  // Estados do Formulário Modal Secundária (Nova Categoria)
+  const [modalCategoriaAberta, setModalCategoriaAberta] = useState(false);
+  const [novaCategoriaInput, setNovaCategoriaInput] = useState("");
 
   const SENHA_MESTRE = "182529";
 
@@ -287,26 +288,26 @@ export function Migracao({ fecharPainel, recarregarDados }) {
       const querySnapshot = await getDocs(collection(db, "produtos"));
       const lista = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-lista.sort((a, b) => {
-  // 1. Ordena por Categoria
-  if (a.categoria < b.categoria) return -1;
-  if (a.categoria > b.categoria) return 1;
+      lista.sort((a, b) => {
+        // 1. Ordena por Categoria
+        if (a.categoria < b.categoria) return -1;
+        if (a.categoria > b.categoria) return 1;
 
-  // 2. Se a categoria for igual, ordena pelo Complemento (nome)
-  const compA = a.complemento || "";
-  const compB = b.complemento || "";
-  
-  if (compA !== compB) {
-    return compA.localeCompare(compB);
-  }
+        // 2. Se a categoria for igual, ordena pelo Complemento (nome)
+        const compA = a.complemento || "";
+        const compB = b.complemento || "";
+        
+        if (compA !== compB) {
+          return compA.localeCompare(compB);
+        }
 
-  // 3. Se o complemento também for igual, ordena pela Gramatura
-  const gramA = a.gramatura || "";
-  const gramB = b.gramatura || "";
-  
-  // O { numeric: true } garante que "100g" venha DEPOIS de "20g" em vez de antes.
-  return gramA.localeCompare(gramB, undefined, { numeric: true });
-});
+        // 3. Se o complemento também for igual, ordena pela Gramatura
+        const gramA = a.gramatura || "";
+        const gramB = b.gramatura || "";
+        
+        // O { numeric: true } garante que "100g" venha DEPOIS de "20g" em vez de antes.
+        return gramA.localeCompare(gramB, undefined, { numeric: true });
+      });
 
       setProdutosFirebase(lista);
     } catch (error) {
@@ -345,7 +346,7 @@ lista.sort((a, b) => {
     setFormAberto(false);
   };
 
-const salvarProdutoFormulario = async () => {
+  const salvarProdutoFormulario = async () => {
     if (!formCategoria || !formComplemento || !formGramatura || !formPreco) {
       return alert("Por favor, preencha todos os campos!");
     }
@@ -364,7 +365,7 @@ const salvarProdutoFormulario = async () => {
           complemento: formComplemento.toUpperCase(),
           gramatura: formGramatura.toUpperCase(),
           precoBase: precoFinal,
-          maior18: formMaior18 // <--- SALVA A EDIÇÃO NO BANCO
+          maior18: formMaior18
         }, { merge: true });
         alert("Produto atualizado com sucesso!");
       } else {
@@ -373,7 +374,7 @@ const salvarProdutoFormulario = async () => {
           complemento: formComplemento.toUpperCase(),
           gramatura: formGramatura.toUpperCase(),
           precoBase: precoFinal,
-          maior18: formMaior18 // <--- SALVA O CADASTRO NO BANCO
+          maior18: formMaior18
         });
         alert("Novo produto cadastrado com sucesso!");
       }
@@ -665,7 +666,7 @@ const salvarProdutoFormulario = async () => {
       </div>
 
       {/* ========================================================
-          MODAL SOBREPOSTA DE CADASTRO / EDIÇÃO
+          MODAL 1: CADASTRO / EDIÇÃO DE PRODUTO
       ======================================================== */}
       {formAberto && (
         <div className="modal-secundaria-overlay" onClick={fecharFormulario}>
@@ -676,10 +677,24 @@ const salvarProdutoFormulario = async () => {
             </h3>
 
             <div className="modal-input-group">
-              <label>CATEGORIA</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label>CATEGORIA</label>
+                <span 
+                  onClick={() => setModalCategoriaAberta(true)} 
+                  style={{ fontSize: '10px', color: 'var(--laranja)', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ➕ NOVA CATEGORIA
+                </span>
+              </div>
               <select value={formCategoria} onChange={e => setFormCategoria(e.target.value)}>
                 <option value="">Selecione a categoria...</option>
                 {categoriasUnicas.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                {/* Permite exibir a nova categoria recém criada no select */}
+                {formCategoria && !categoriasUnicas.includes(formCategoria) && (
+                  <option value={formCategoria} style={{ color: 'var(--laranja)', fontWeight: 'bold' }}>
+                    {formCategoria}
+                  </option>
+                )}
               </select>
             </div>
 
@@ -723,6 +738,46 @@ const salvarProdutoFormulario = async () => {
               </button>
               <button onClick={salvarProdutoFormulario} disabled={salvandoForm} style={{ background: '#4CAF50', flex: 2 }}>
                 {salvandoForm ? <i className="fa-solid fa-spinner fa-spin"></i> : (produtoEmEdicao ? 'SALVAR ALTERAÇÃO' : 'CADASTRAR')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          MODAL 2: CRIAR NOVA CATEGORIA (SOBREPOSTA)
+      ======================================================== */}
+      {modalCategoriaAberta && (
+        <div className="modal-secundaria-overlay" style={{ zIndex: 999999, background: 'rgba(0,0,0,0.8)' }}>
+          <div className="modal-secundaria-content" style={{ background: '#fff', padding: '25px', borderRadius: '8px', width: '100%', maxWidth: '350px', display: 'flex', flexDirection: 'column', gap: '15px', boxSizing: 'border-box' }}>
+            <h3 style={{ margin: 0, color: 'var(--laranja)', fontSize: '12pt', textAlign: 'center' }}>
+              ➕ CRIAR CATEGORIA
+            </h3>
+            
+            <div className="modal-input-group">
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#555' }}>NOME DA NOVA CATEGORIA</label>
+              <input 
+                type="text" 
+                value={novaCategoriaInput} 
+                onChange={e => setNovaCategoriaInput(e.target.value)} 
+                placeholder="Ex: BEBIDAS QUENTES"
+                autoFocus
+                style={{ textTransform: 'uppercase', border: '2px solid var(--laranja)', padding: '12px', borderRadius: '4px', width: '100%', boxSizing: 'border-box', fontWeight: 'bold', color: 'var(--laranja)', outline: 'none' }}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => { setModalCategoriaAberta(false); setNovaCategoriaInput(""); }} style={{ flex: 1, padding: '12px', background: '#e0e0e0', color: '#333', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+                CANCELAR
+              </button>
+              <button onClick={() => {
+                if (novaCategoriaInput.trim() !== "") {
+                  setFormCategoria(novaCategoriaInput.toUpperCase());
+                  setModalCategoriaAberta(false);
+                  setNovaCategoriaInput("");
+                }
+              }} style={{ flex: 1, padding: '12px', background: 'var(--laranja)', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+                USAR
               </button>
             </div>
           </div>
