@@ -26,6 +26,9 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
   const [formPreco, setFormPreco] = useState("");
   const [salvandoForm, setSalvandoForm] = useState(false);
 
+  // ESTADO QUE CONTROLA SE O USUÁRIO QUER CRIAR CATEGORIA NOVA
+  const [isNovaCategoria, setIsNovaCategoria] = useState(false);
+
   const SENHA_MESTRE = "182529"; //senha inativa
 
   const verificarSenha = (e) => {
@@ -46,11 +49,9 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
       const lista = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
       lista.sort((a, b) => {
-        // 1. Ordena por Categoria
         if (a.categoria < b.categoria) return -1;
         if (a.categoria > b.categoria) return 1;
 
-        // 2. Se a categoria for igual, ordena pelo Complemento (nome)
         const compA = a.complemento || "";
         const compB = b.complemento || "";
         
@@ -58,11 +59,9 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
           return compA.localeCompare(compB);
         }
 
-        // 3. Se o complemento também for igual, ordena pela Gramatura
         const gramA = a.gramatura || "";
         const gramB = b.gramatura || "";
         
-        // O { numeric: true } garante que "100g" venha DEPOIS de "20g" em vez de antes.
         return gramA.localeCompare(gramB, undefined, { numeric: true });
       });
       
@@ -75,10 +74,8 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // Mapeia categorias únicas existentes no banco de dados para alimentar o Dropdown
   const categoriasUnicas = Array.from(new Set(produtosBase.map(p => p.categoria))).filter(Boolean).sort();
 
-  // Carrega o produto selecionado na lista para o formulário superior
   const carregarNoFormulario = (produto) => {
     setProdutoEmEdicao(produto);
     setFormCategoria(produto.categoria || "");
@@ -86,7 +83,8 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
     setFormGramatura(produto.gramatura || "");
     setFormPreco(Number(produto.precoBase).toFixed(2).replace('.', ','));
     
-    // Rola a tela para o topo para ver o formulário preenchido
+    setIsNovaCategoria(false); // Reseta para voltar a ser dropdown
+
     const formElement = document.getElementById('painel-edicao-mestre');
     if (formElement) formElement.scrollIntoView({ behavior: 'smooth' });
   };
@@ -97,9 +95,9 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
     setFormComplemento("");
     setFormGramatura("");
     setFormPreco("");
+    setIsNovaCategoria(false); // Reseta
   };
 
-  // Grava as alterações completas do formulário no Firebase
   const salvarEdicaoCompleta = async () => {
     if (!produtoEmEdicao) return;
     if (!formCategoria || !formComplemento || !formGramatura || !formPreco) {
@@ -177,7 +175,6 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
     }
   };
 
-  // TELA DE SENHA
   if (!autenticado) {
     return (
       <div className="painel-overlay">
@@ -211,19 +208,16 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
     );
   }
 
-  // TELA DE PRECIFICAÇÃO COMPLETA
   return (
     <div className="painel-overlay">
       <div className="painel-modal" style={{ maxWidth: '900px' }}>
         
-        {/* HEADER COM BOTÃO ESTILIZADO */}
         <div className="painel-header" style={{ borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between' }}>
           <h2 style={{ color: 'var(--laranja)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
             <i className="fa-solid fa-database"></i> Gerenciador de Produtos
           </h2>
           
           <div className="painel-controls" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            {/* BOTÃO ROBUSTO */}
             <button 
                 className={`btn-action btn-orange ${salvando ? 'loading' : ''}`} 
                 onClick={atualizarCatalogo}
@@ -268,21 +262,64 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
           
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end', opacity: produtoEmEdicao ? 1 : 0.5, pointerEvents: produtoEmEdicao ? 'auto' : 'none' }}>
             
-            {/* AQUI ESTÁ A MÁGICA DO INPUT COM DATALIST */}
+            {/* NOVO CAMPO DE CATEGORIA HÍBRIDO (SELECT / INPUT) */}
             <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#555' }}>CATEGORIA</label>
-              <input 
-                list="lista-categorias-precificacao"
-                value={formCategoria} 
-                onChange={e => setFormCategoria(e.target.value)} 
-                placeholder="Selecione ou digite nova..."
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none', textTransform: 'uppercase' }}
-              />
-              <datalist id="lista-categorias-precificacao">
-                {categoriasUnicas.map(cat => (
-                  <option key={cat} value={cat} />
-                ))}
-              </datalist>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#555' }}>CATEGORIA</label>
+                {/* Botão para cancelar a nova categoria e voltar pro dropdown */}
+                {isNovaCategoria && (
+                  <span 
+                    onClick={() => { setIsNovaCategoria(false); setFormCategoria(""); }} 
+                    style={{ fontSize: '10px', color: 'red', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    ✖ VOLTAR
+                  </span>
+                )}
+              </div>
+
+              {!isNovaCategoria ? (
+                <select 
+                  value={formCategoria} 
+                  onChange={e => {
+                    if (e.target.value === "NOVA_CATEGORIA_CUSTOM") {
+                      setIsNovaCategoria(true);
+                      setFormCategoria("");
+                    } else {
+                      setFormCategoria(e.target.value);
+                    }
+                  }} 
+                  style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none' }}
+                >
+                  <option value="">Selecione...</option>
+                  {categoriasUnicas.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  {/* Opção mágica para habilitar a digitação */}
+                  <option value="NOVA_CATEGORIA_CUSTOM" style={{ fontWeight: 'bold', color: 'var(--laranja)' }}>
+                    ➕ CRIAR NOVA CATEGORIA...
+                  </option>
+                </select>
+              ) : (
+                <input 
+                  type="text" 
+                  value={formCategoria} 
+                  onChange={e => setFormCategoria(e.target.value)} 
+                  placeholder="DIGITE A NOVA..."
+                  autoFocus
+                  style={{ 
+                    padding: '10px', 
+                    borderRadius: '4px', 
+                    border: '2px dashed var(--laranja)', 
+                    width: '100%', 
+                    background: '#fff', 
+                    textTransform: 'uppercase', 
+                    outline: 'none', 
+                    fontWeight: 'bold', 
+                    color: 'var(--laranja)' 
+                  }}
+                />
+              )}
             </div>
 
             <div style={{ flex: '2 1 250px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -337,7 +374,7 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
           </div>
         </div>
 
-        {/* TABELA DE PRODUTOS COM BOTÃO DE AÇÃO */}
+        {/* TABELA DE PRODUTOS */}
         <div className="table-responsive">
           {carregando ? (
             <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
@@ -360,7 +397,6 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
                   const valorAtualFormatado = Number(prod.precoBase).toFixed(2).replace('.', ',');
                   const temAlteracao = valorEditado !== undefined && valorEditado !== valorAtualFormatado && valorEditado !== "";
                   
-                  // Se o item estiver sendo editado no momento, destaca a linha
                   const isEditando = produtoEmEdicao?.id === prod.id;
 
                   return (
