@@ -45,26 +45,26 @@ export function PainelPrecificacao({ fecharPainel, recarregarDados }) {
       const querySnapshot = await getDocs(collection(db, "produtos"));
       const lista = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-lista.sort((a, b) => {
-  // 1. Ordena por Categoria
-  if (a.categoria < b.categoria) return -1;
-  if (a.categoria > b.categoria) return 1;
+      lista.sort((a, b) => {
+        // 1. Ordena por Categoria
+        if (a.categoria < b.categoria) return -1;
+        if (a.categoria > b.categoria) return 1;
 
-  // 2. Se a categoria for igual, ordena pelo Complemento (nome)
-  const compA = a.complemento || "";
-  const compB = b.complemento || "";
-  
-  if (compA !== compB) {
-    return compA.localeCompare(compB);
-  }
+        // 2. Se a categoria for igual, ordena pelo Complemento (nome)
+        const compA = a.complemento || "";
+        const compB = b.complemento || "";
+        
+        if (compA !== compB) {
+          return compA.localeCompare(compB);
+        }
 
-  // 3. Se o complemento também for igual, ordena pela Gramatura
-  const gramA = a.gramatura || "";
-  const gramB = b.gramatura || "";
-  
-  // O { numeric: true } garante que "100g" venha DEPOIS de "20g" em vez de antes.
-  return gramA.localeCompare(gramB, undefined, { numeric: true });
-});
+        // 3. Se o complemento também for igual, ordena pela Gramatura
+        const gramA = a.gramatura || "";
+        const gramB = b.gramatura || "";
+        
+        // O { numeric: true } garante que "100g" venha DEPOIS de "20g" em vez de antes.
+        return gramA.localeCompare(gramB, undefined, { numeric: true });
+      });
       
       setProdutosBase(lista);
     } catch (error) {
@@ -216,7 +216,7 @@ lista.sort((a, b) => {
     <div className="painel-overlay">
       <div className="painel-modal" style={{ maxWidth: '900px' }}>
         
-        {/* HEADER COM BOTÃO ESTILIZADO (Ponto 1) */}
+        {/* HEADER COM BOTÃO ESTILIZADO */}
         <div className="painel-header" style={{ borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between' }}>
           <h2 style={{ color: 'var(--laranja)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
             <i className="fa-solid fa-database"></i> Gerenciador de Produtos
@@ -252,7 +252,7 @@ lista.sort((a, b) => {
           </div>
         </div>
 
-        {/* FORMULÁRIO COMPLETO DE EDIÇÃO (Ponto 3) */}
+        {/* FORMULÁRIO COMPLETO DE EDIÇÃO */}
         <div id="painel-edicao-mestre" className="hide-print" style={{ 
           background: produtoEmEdicao ? '#fff3cd' : '#f8f9fa', 
           padding: '20px', 
@@ -268,18 +268,21 @@ lista.sort((a, b) => {
           
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'flex-end', opacity: produtoEmEdicao ? 1 : 0.5, pointerEvents: produtoEmEdicao ? 'auto' : 'none' }}>
             
+            {/* AQUI ESTÁ A MÁGICA DO INPUT COM DATALIST */}
             <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#555' }}>CATEGORIA (DROPDOWN)</label>
-              <select 
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#555' }}>CATEGORIA</label>
+              <input 
+                list="lista-categorias-precificacao"
                 value={formCategoria} 
                 onChange={e => setFormCategoria(e.target.value)} 
-                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none' }}
-              >
-                <option value="">Selecione...</option>
+                placeholder="Selecione ou digite nova..."
+                style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', width: '100%', background: '#fff', fontWeight: 'bold', outline: 'none', textTransform: 'uppercase' }}
+              />
+              <datalist id="lista-categorias-precificacao">
                 {categoriasUnicas.map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div style={{ flex: '2 1 250px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -334,7 +337,7 @@ lista.sort((a, b) => {
           </div>
         </div>
 
-        {/* TABELA DE PRODUTOS COM BOTÃO DE AÇÃO (Ponto 2) */}
+        {/* TABELA DE PRODUTOS COM BOTÃO DE AÇÃO */}
         <div className="table-responsive">
           {carregando ? (
             <div style={{ textAlign: 'center', padding: '50px', color: 'var(--laranja)' }}>
